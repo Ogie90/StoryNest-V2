@@ -27,7 +27,6 @@ const NewStory = () => {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    migrateFromLegacy();
     fetchProfiles().then((p) => {
       setProfiles(p);
       setLoading(false);
