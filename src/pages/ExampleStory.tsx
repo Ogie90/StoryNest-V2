@@ -49,6 +49,11 @@ const personalizations = [
 ];
 
 const ExampleStory = () => {
+  const savedProfile = useMemo(() => getProfile(), []);
+  const profile = savedProfile || fallbackProfile;
+  const childName = profile.name;
+  const isPersonalized = !!savedProfile;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
