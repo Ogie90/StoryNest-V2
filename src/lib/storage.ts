@@ -1,5 +1,5 @@
 import type { ChildProfile } from "@/pages/Onboarding";
-import { generateTitle, generatePages } from "@/lib/story-content";
+import { personalizeStory, generatePersonalizedTitle } from "@/lib/storyPersonalization";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -13,6 +13,9 @@ export interface Story {
   id: string;
   profileId: string;
   title: string;
+  subtitle: string;
+  summary: string;
+  dedication: string;
   pages: string[];
   status: "draft" | "preview" | "purchased";
   tone: string;
@@ -124,16 +127,21 @@ export function createStoryFromProfile(
   status: Story["status"] = "draft",
 ): Story {
   const profile = getProfileById(profileId);
-  const name = profile?.name ?? "Child";
-  const interests = profile?.interests ?? [];
-  const title = generateTitle(name, interests);
-  const pages = generatePages(name, interests);
+  const childProfile: ChildProfile = profile ?? {
+    name: "Child", age: 5, readingLevel: "Beginner",
+    interests: [], favoriteThings: "", avoidTopics: [],
+    avoidFreeText: "", photos: [], storyTone: tone,
+  };
+  const personalized = personalizeStory(childProfile, tone);
 
   const story: Story = {
     id: genId(),
     profileId,
-    title,
-    pages,
+    title: personalized.title,
+    subtitle: personalized.subtitle,
+    summary: personalized.summary,
+    dedication: personalized.dedication,
+    pages: personalized.fullPages,
     status,
     tone,
     createdAt: now(),
@@ -171,16 +179,19 @@ export function migrateFromLegacy(): void {
 
         // Determine status from legacy flags
         const purchased = localStorage.getItem(LEGACY_PURCHASED_KEY) === "true";
-        const title = generateTitle(legacy.name, legacy.interests || []);
-        const pages = generatePages(legacy.name, legacy.interests || []);
+        const tone = legacy.storyTone || "Adventurous";
+        const personalized = personalizeStory(legacy, tone);
 
         const story: Story = {
           id: genId(),
           profileId,
-          title,
-          pages,
+          title: personalized.title,
+          subtitle: personalized.subtitle,
+          summary: personalized.summary,
+          dedication: personalized.dedication,
+          pages: personalized.fullPages,
           status: purchased ? "purchased" : "preview",
-          tone: legacy.storyTone || "Adventurous",
+          tone,
           createdAt: ts,
           updatedAt: ts,
         };

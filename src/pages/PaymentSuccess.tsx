@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, hasPurchased, getProfile } from "@/lib/guards";
 import { getStoryById, getProfileById } from "@/lib/storage";
-import { generateTitle } from "@/lib/story-content";
+import { personalizeStory } from "@/lib/storyPersonalization";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 
@@ -28,7 +28,9 @@ const PaymentSuccess = () => {
 
   if (!profile) return null;
 
-  const title = story?.title || generateTitle(profile.name, profile.interests || []);
+  const tone = story?.tone || profile.storyTone || "Adventurous";
+  const personalized = personalizeStory(profile, tone);
+  const title = story?.title || personalized.title;
   const bookPath = storyId ? `/book?story=${storyId}` : "/book";
 
   return (
