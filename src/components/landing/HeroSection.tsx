@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
-  const scrollTo = (href: string) => {
-    document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
-  };
+  const navigate = useNavigate();
 
   return (
     <section className="py-20 lg:py-32 text-center">
@@ -16,7 +14,7 @@ const HeroSection = () => {
           Truly personalized stories built around your child's interests, personality, and world — not just a name swap.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button onClick={() => scrollTo("#final-cta")} size="lg" className="rounded-full px-8 text-base">
+          <Button onClick={() => navigate("/onboarding")} size="lg" className="rounded-full px-8 text-base">
             Start Creating
           </Button>
           <Button asChild variant="outline" size="lg" className="rounded-full px-8 text-base">

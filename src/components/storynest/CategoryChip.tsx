@@ -4,10 +4,13 @@ interface CategoryChipProps {
   label: string;
   active?: boolean;
   color?: string;
+  onClick?: () => void;
 }
 
-const CategoryChip = ({ label, active = false, color }: CategoryChipProps) => (
+const CategoryChip = ({ label, active = false, color, onClick }: CategoryChipProps) => (
   <button
+    type="button"
+    onClick={onClick}
     className={cn(
       "px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 shrink-0 border",
       active

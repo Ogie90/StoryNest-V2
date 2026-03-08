@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import ProductShowcase from "@/components/landing/ProductShowcase";
@@ -9,6 +10,8 @@ import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -28,7 +31,7 @@ const Index = () => {
           <p className="text-muted-foreground max-w-md mx-auto mb-8">
             It only takes a few minutes to build a story your child will treasure forever.
           </p>
-          <Button size="lg" className="rounded-full px-10 text-base">
+          <Button onClick={() => navigate("/onboarding")} size="lg" className="rounded-full px-10 text-base">
             Start Creating
           </Button>
         </div>
