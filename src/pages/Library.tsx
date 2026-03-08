@@ -48,9 +48,7 @@ const Library = () => {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   useEffect(() => {
-    migrateFromLegacy();
     const load = async () => {
-      await migrateLocalToSupabase();
       const all = await fetchStories();
       setStories(all);
 
