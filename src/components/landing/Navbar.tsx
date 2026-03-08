@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, BookOpen } from "lucide-react";
+import { Menu, BookOpen, LogOut, LogIn } from "lucide-react";
 
 const navLinks = [
   { label: "How it Works", href: "#how-it-works" },
@@ -13,6 +14,7 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, loading, signOut } = useAuth();
 
   const scrollTo = (href: string) => {
     setOpen(false);
@@ -22,6 +24,17 @@ const Navbar = () => {
   const goToLibrary = () => {
     setOpen(false);
     navigate("/library");
+  };
+
+  const handleSignOut = async () => {
+    setOpen(false);
+    await signOut();
+    navigate("/");
+  };
+
+  const handleSignIn = () => {
+    setOpen(false);
+    navigate("/auth");
   };
 
   return (
@@ -40,18 +53,36 @@ const Navbar = () => {
               {link.label}
             </button>
           ))}
-          <button
-            onClick={goToLibrary}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
-          >
-            <BookOpen size={14} /> My Library
-          </button>
+          {user && (
+            <button
+              onClick={goToLibrary}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+            >
+              <BookOpen size={14} /> My Library
+            </button>
+          )}
         </div>
 
-        <div className="hidden md:block">
-          <Button onClick={() => scrollTo("#final-cta")} className="rounded-full px-6">
-            Start Creating
-          </Button>
+        <div className="hidden md:flex items-center gap-3">
+          {loading ? null : user ? (
+            <>
+              <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+                {user.email}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-1.5">
+                <LogOut size={14} /> Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={handleSignIn} className="gap-1.5">
+                <LogIn size={14} /> Sign In
+              </Button>
+              <Button onClick={() => scrollTo("#final-cta")} className="rounded-full px-6">
+                Start Creating
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -73,15 +104,34 @@ const Navbar = () => {
                   {link.label}
                 </button>
               ))}
-              <button
-                onClick={goToLibrary}
-                className="text-base font-medium text-foreground text-left inline-flex items-center gap-2"
-              >
-                <BookOpen size={16} /> My Library
-              </button>
-              <Button onClick={() => scrollTo("#final-cta")} className="rounded-full mt-4">
-                Start Creating
-              </Button>
+              {user && (
+                <button
+                  onClick={goToLibrary}
+                  className="text-base font-medium text-foreground text-left inline-flex items-center gap-2"
+                >
+                  <BookOpen size={16} /> My Library
+                </button>
+              )}
+
+              {loading ? null : user ? (
+                <>
+                  <span className="text-sm text-muted-foreground truncate">
+                    {user.email}
+                  </span>
+                  <Button variant="ghost" onClick={handleSignOut} className="justify-start gap-2">
+                    <LogOut size={16} /> Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" onClick={handleSignIn} className="justify-start gap-2">
+                    <LogIn size={16} /> Sign In
+                  </Button>
+                  <Button onClick={() => scrollTo("#final-cta")} className="rounded-full mt-4">
+                    Start Creating
+                  </Button>
+                </>
+              )}
             </div>
           </SheetContent>
         </Sheet>
