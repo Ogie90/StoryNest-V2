@@ -36,6 +36,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/example" element={<ExampleStory />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/generating" element={<ProtectedRoute><StoryGenerating /></ProtectedRoute>} />
             <Route path="/preview" element={<ProtectedRoute><StoryPreview /></ProtectedRoute>} />
