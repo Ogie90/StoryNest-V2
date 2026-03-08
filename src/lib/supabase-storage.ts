@@ -10,6 +10,14 @@ import {
 } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
 
+// ── Auth helper ────────────────────────────────────────
+
+async function getAuthUserId(): Promise<string> {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error("Not authenticated");
+  return user.id;
+}
+
 // ── Mappers ────────────────────────────────────────────
 
 function dbToProfile(row: any): StoredProfile {
@@ -29,7 +37,7 @@ function dbToProfile(row: any): StoredProfile {
   };
 }
 
-function profileToDb(p: StoredProfile) {
+function profileToDb(p: StoredProfile, userId: string) {
   return {
     id: p.id,
     child_name: p.name,
@@ -41,6 +49,7 @@ function profileToDb(p: StoredProfile) {
     avoid_free_text: p.avoidFreeText,
     story_tone: p.storyTone,
     photos: p.photos,
+    user_id: userId,
   };
 }
 
@@ -61,7 +70,7 @@ function dbToStory(row: any): Story {
   };
 }
 
-function storyToDb(s: Story) {
+function storyToDb(s: Story, userId: string) {
   return {
     id: s.id,
     profile_id: s.profileId,
@@ -73,6 +82,7 @@ function storyToDb(s: Story) {
     status: s.status,
     pages: s.pages as any,
     edits: s.edits as any ?? null,
+    user_id: userId,
   };
 }
 
@@ -104,7 +114,8 @@ export async function fetchProfileById(id: string): Promise<StoredProfile | null
 }
 
 export async function upsertProfile(profile: StoredProfile): Promise<StoredProfile> {
-  const row = profileToDb(profile);
+  const userId = await getAuthUserId();
+  const row = profileToDb(profile, userId);
   const { data, error } = await supabase
     .from("profiles")
     .upsert(row as any)
@@ -112,7 +123,6 @@ export async function upsertProfile(profile: StoredProfile): Promise<StoredProfi
     .single();
   if (error) {
     console.warn("Supabase upsertProfile failed:", error.message);
-    // Still save locally
     const { saveProfile } = await import("@/lib/storage");
     return saveProfile(profile);
   }
@@ -122,7 +132,6 @@ export async function upsertProfile(profile: StoredProfile): Promise<StoredProfi
 export async function removeProfile(id: string): Promise<void> {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
   if (error) console.warn("Supabase removeProfile failed:", error.message);
-  // Also remove locally
   const { deleteProfile } = await import("@/lib/storage");
   deleteProfile(id);
 }
@@ -155,7 +164,8 @@ export async function fetchStoryById(id: string): Promise<Story | null> {
 }
 
 export async function upsertStory(story: Story): Promise<Story> {
-  const row = storyToDb(story);
+  const userId = await getAuthUserId();
+  const row = storyToDb(story, userId);
   const { data, error } = await supabase
     .from("stories")
     .upsert(row as any)
@@ -227,14 +237,26 @@ const MIGRATION_KEY = "storynest-supabase-migrated";
 export async function migrateLocalToSupabase(): Promise<void> {
   if (localStorage.getItem(MIGRATION_KEY)) return;
 
+  let userId: string;
+  try {
+    userId = await getAuthUserId();
+  } catch {
+    // Not authenticated — skip migration
+    return;
+  }
+
   const localProfiles = getLocalProfiles();
   const localStories = getLocalStories();
 
   for (const p of localProfiles) {
-    await upsertProfile(p);
+    const row = profileToDb(p, userId);
+    const { error } = await supabase.from("profiles").upsert(row as any);
+    if (error) console.warn("Migration upsert profile failed:", error.message);
   }
   for (const s of localStories) {
-    await upsertStory(s);
+    const row = storyToDb(s, userId);
+    const { error } = await supabase.from("stories").upsert(row as any);
+    if (error) console.warn("Migration upsert story failed:", error.message);
   }
 
   if (localProfiles.length > 0 || localStories.length > 0) {
