@@ -132,15 +132,10 @@ const Book = () => {
               <button
                 key={idx}
                 onClick={() => setCurrentPage(idx)}
-                className="w-2 h-2 rounded-full transition-colors"
-                style={{
-                  backgroundColor: idx === currentPage
-                    ? `hsl(${theme.accentHsl})`
-                    : undefined,
-                }}
-                {...(idx !== currentPage && {
-                  className: "w-2 h-2 rounded-full transition-colors bg-border hover:bg-muted-foreground/30",
-                })}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  idx !== currentPage ? "bg-border hover:bg-muted-foreground/30" : ""
+                }`}
+                style={idx === currentPage ? { backgroundColor: `hsl(${theme.accentHsl})` } : undefined}
               />
             ))}
           </div>
