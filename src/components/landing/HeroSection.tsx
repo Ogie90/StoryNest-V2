@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   const scrollTo = (href: string) => {
@@ -18,13 +19,8 @@ const HeroSection = () => {
           <Button onClick={() => scrollTo("#final-cta")} size="lg" className="rounded-full px-8 text-base">
             Start Creating
           </Button>
-          <Button
-            onClick={() => scrollTo("#showcase")}
-            variant="outline"
-            size="lg"
-            className="rounded-full px-8 text-base"
-          >
-            See an Example
+          <Button asChild variant="outline" size="lg" className="rounded-full px-8 text-base">
+            <Link to="/example">See an Example</Link>
           </Button>
         </div>
       </div>
