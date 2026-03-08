@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import ExampleStory from "./pages/ExampleStory";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Onboarding from "./pages/Onboarding";
 import StoryGenerating from "./pages/StoryGenerating";
 import StoryPreview from "./pages/StoryPreview";
