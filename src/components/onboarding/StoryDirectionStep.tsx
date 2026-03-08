@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Check } from "lucide-react";
-import type { ChildProfile } from "@/pages/Onboarding";
+import type { ChildProfile } from "@/types";
 
 const TONE_OPTIONS = [
   { label: "Adventurous", emoji: "🗺️", desc: "Bold quests and exciting discoveries" },

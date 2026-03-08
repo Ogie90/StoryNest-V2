@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ArrowRight } from "lucide-react";
-import type { ChildProfile } from "@/pages/Onboarding";
+import type { ChildProfile } from "@/types";
 
 const schema = z.object({
   name: z.string().min(1, "Please enter a name").max(50),

@@ -1,4 +1,4 @@
-import type { ChildProfile } from "@/pages/Onboarding";
+import type { ChildProfile } from "@/types";
 
 // ── Types ──────────────────────────────────────────────
 

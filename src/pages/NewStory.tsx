@@ -39,7 +39,6 @@ const NewStory = () => {
     if (!profile) return;
 
     setCreating(true);
-    setActiveProfile(profile);
     const story = await createStoryFromProfileAsync(selectedId, tone, "preview");
     navigate(`/generating?story=${story.id}`);
   };

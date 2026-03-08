@@ -20,18 +20,7 @@ import {
   fetchStoryById as fetchStoryByIdAsync,
   createStoryFromProfileAsync,
 } from "@/lib/supabase-storage";
-
-export interface ChildProfile {
-  name: string;
-  age: number;
-  readingLevel: string;
-  interests: string[];
-  favoriteThings: string;
-  avoidTopics: string[];
-  avoidFreeText: string;
-  photos: string[]; // base64 data URLs
-  storyTone: string;
-}
+import type { ChildProfile } from "@/types";
 
 const PROFILE_KEY = "storynest-child-profile";
 const STEP_KEY = "storynest-onboarding-step";

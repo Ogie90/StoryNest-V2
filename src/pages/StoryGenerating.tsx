@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { hasOnboardingData, getProfile } from "@/lib/guards";
 import { fetchStoryById, fetchProfileById, upsertStory } from "@/lib/supabase-storage";
-import type { Story, StoredProfile } from "@/lib/storage";
+import type { Story } from "@/types";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,19 +33,14 @@ const StoryGenerating = () => {
           setChildName(p?.name || "your child");
         }
       } else {
-        const legacy = getProfile();
-        setChildName(legacy?.name || "your child");
+        // No storyId — redirect to new-story flow
+        navigate("/new-story", { replace: true });
+        return;
       }
       setLoaded(true);
     };
     load();
-  }, [storyId]);
-
-  useEffect(() => {
-    if (loaded && !storyId && !hasOnboardingData()) {
-      navigate("/onboarding", { replace: true });
-    }
-  }, [loaded, storyId, navigate]);
+  }, [storyId, navigate]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -111,7 +105,7 @@ const StoryGenerating = () => {
           variant="ghost"
           size="sm"
           className="text-muted-foreground"
-          onClick={() => navigate("/onboarding")}
+          onClick={() => navigate("/library")}
         >
           Cancel
         </Button>
