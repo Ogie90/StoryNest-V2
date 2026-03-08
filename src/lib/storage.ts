@@ -127,16 +127,21 @@ export function createStoryFromProfile(
   status: Story["status"] = "draft",
 ): Story {
   const profile = getProfileById(profileId);
-  const name = profile?.name ?? "Child";
-  const interests = profile?.interests ?? [];
-  const title = generateTitle(name, interests);
-  const pages = generatePages(name, interests);
+  const childProfile: ChildProfile = profile ?? {
+    name: "Child", age: 5, readingLevel: "Beginner",
+    interests: [], favoriteThings: "", avoidTopics: [],
+    avoidFreeText: "", photos: [], storyTone: tone,
+  };
+  const personalized = personalizeStory(childProfile, tone);
 
   const story: Story = {
     id: genId(),
     profileId,
-    title,
-    pages,
+    title: personalized.title,
+    subtitle: personalized.subtitle,
+    summary: personalized.summary,
+    dedication: personalized.dedication,
+    pages: personalized.fullPages,
     status,
     tone,
     createdAt: now(),
