@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { migrateFromLegacy, setActiveProfile, type StoredProfile } from "@/lib/storage";
 import {
-  migrateFromLegacy,
-  getProfiles,
-  createStoryFromProfile,
-  setActiveProfile,
-  type StoredProfile,
-} from "@/lib/storage";
+  fetchProfiles,
+  createStoryFromProfileAsync,
+} from "@/lib/supabase-storage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Sparkles, User } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, User, Loader2 } from "lucide-react";
 
 const TONE_OPTIONS = [
   { label: "Adventurous", emoji: "🗺️" },
@@ -26,25 +23,35 @@ const NewStory = () => {
   const [profiles, setProfiles] = useState<StoredProfile[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tone, setTone] = useState("Adventurous");
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     migrateFromLegacy();
-    setProfiles(getProfiles());
+    fetchProfiles().then((p) => {
+      setProfiles(p);
+      setLoading(false);
+    });
   }, []);
 
-  const handleCreate = () => {
-    if (!selectedId) return;
+  const handleCreate = async () => {
+    if (!selectedId || creating) return;
     const profile = profiles.find((p) => p.id === selectedId);
     if (!profile) return;
 
-    // Set as active profile for legacy compatibility
+    setCreating(true);
     setActiveProfile(profile);
-
-    // Create a new story linked to this profile (does NOT modify the profile)
-    const story = createStoryFromProfile(selectedId, tone, "preview");
-
+    const story = await createStoryFromProfileAsync(selectedId, tone, "preview");
     navigate(`/generating?story=${story.id}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (profiles.length === 0) {
     return (
@@ -90,7 +97,6 @@ const NewStory = () => {
       </div>
 
       <div className="max-w-lg mx-auto px-5 mt-6 space-y-8">
-        {/* Profile selection */}
         <div className="space-y-3">
           <p className="text-sm font-semibold text-foreground">Choose a child</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -132,7 +138,6 @@ const NewStory = () => {
           </Link>
         </div>
 
-        {/* Tone picker */}
         {selectedId && (
           <div className="space-y-3">
             <p className="text-sm font-semibold text-foreground">Story tone</p>
@@ -155,10 +160,15 @@ const NewStory = () => {
           </div>
         )}
 
-        {/* Create CTA */}
         {selectedId && (
-          <Button className="w-full rounded-full gap-2" size="lg" onClick={handleCreate}>
-            <Sparkles size={16} /> Create Story
+          <Button
+            className="w-full rounded-full gap-2"
+            size="lg"
+            onClick={handleCreate}
+            disabled={creating}
+          >
+            {creating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            {creating ? "Creating…" : "Create Story"}
           </Button>
         )}
       </div>

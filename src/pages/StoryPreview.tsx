@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, getProfile } from "@/lib/guards";
-import { getStoryById, getProfileById } from "@/lib/storage";
+import { fetchStoryById, fetchProfileById } from "@/lib/supabase-storage";
+import type { Story, StoredProfile } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
 import { getVisualTheme, getSceneLabel } from "@/lib/storyVisualTheme";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Loader2 } from "lucide-react";
 import StoryCoverCard from "@/components/story/StoryCoverCard";
 import StoryPageCard from "@/components/story/StoryPageCard";
 import StoryLockCard from "@/components/story/StoryLockCard";
@@ -14,17 +15,42 @@ const StoryPreview = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const storyId = searchParams.get("story");
-
-  const story = storyId ? getStoryById(storyId) : null;
-  const storyProfile = story ? getProfileById(story.profileId) : null;
-  const legacyProfile = getProfile();
-  const profile = storyProfile || legacyProfile;
+  const [story, setStory] = useState<Story | null>(null);
+  const [profile, setProfile] = useState<StoredProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!story && !hasOnboardingData()) {
+    const load = async () => {
+      if (storyId) {
+        const s = await fetchStoryById(storyId);
+        setStory(s);
+        if (s) {
+          const p = await fetchProfileById(s.profileId);
+          setProfile(p);
+        }
+      }
+      if (!story && !storyId) {
+        const legacy = getProfile();
+        if (legacy) setProfile(legacy);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [storyId]);
+
+  useEffect(() => {
+    if (!loading && !story && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate, story]);
+  }, [loading, story, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!profile) return null;
 
@@ -42,14 +68,12 @@ const StoryPreview = () => {
 
   return (
     <div className="min-h-screen bg-background pb-16">
-      {/* Back link */}
       <div className="max-w-2xl mx-auto px-5 pt-4">
         <Link to="/library" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft size={14} /> Library
         </Link>
       </div>
 
-      {/* Cover */}
       <div className="mt-4">
         <StoryCoverCard
           title={title}
@@ -62,14 +86,12 @@ const StoryPreview = () => {
         />
       </div>
 
-      {/* Summary */}
       {summary && (
         <div className="max-w-2xl mx-auto px-5 mt-6">
           <p className="text-muted-foreground text-xs max-w-md mx-auto text-center">{summary}</p>
         </div>
       )}
 
-      {/* Preview pages */}
       <div className="max-w-2xl mx-auto px-5 mt-8 space-y-5">
         {previewPages.map((text, idx) => (
           <StoryPageCard
@@ -81,7 +103,6 @@ const StoryPreview = () => {
           />
         ))}
 
-        {/* Locked section */}
         <StoryLockCard
           remainingPages={allPages.length - 3}
           theme={theme}
@@ -89,7 +110,6 @@ const StoryPreview = () => {
           onUnlock={() => navigate(`/upgrade${storyParam}`)}
         />
 
-        {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button variant="outline" className="flex-1 gap-2" onClick={() => navigate(`/edit${storyParam}`)}>
             <Pencil size={14} /> Edit Story
