@@ -77,11 +77,6 @@ const Library = () => {
     }
   };
 
-  const handleReset = () => {
-    resetDemoData();
-    setStories([]);
-  };
-
   /* ── Derived data ── */
   const filtered = stories.filter((s) => filterStatus === "all" || s.status === filterStatus);
   const sorted = [...filtered].sort((a, b) =>
