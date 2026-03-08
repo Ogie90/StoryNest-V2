@@ -4,10 +4,9 @@ const Footer = () => (
       <span className="text-lg font-bold text-foreground tracking-tight">StoryNest</span>
 
       <div className="flex gap-6 text-sm text-muted-foreground">
-        <a href="#" className="hover:text-foreground transition-colors">About</a>
-        <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-        <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-        <a href="#" className="hover:text-foreground transition-colors">Contact</a>
+        <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
+        <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
+        <a href="mailto:hello@storynest.app" className="hover:text-foreground transition-colors">Contact</a>
       </div>
 
       <p className="text-xs text-muted-foreground">

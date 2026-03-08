@@ -20,6 +20,8 @@ import Library from "./pages/Library";
 import Profiles from "./pages/Profiles";
 import NewStory from "./pages/NewStory";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
