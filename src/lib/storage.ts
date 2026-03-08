@@ -13,6 +13,9 @@ export interface Story {
   id: string;
   profileId: string;
   title: string;
+  subtitle: string;
+  summary: string;
+  dedication: string;
   pages: string[];
   status: "draft" | "preview" | "purchased";
   tone: string;
