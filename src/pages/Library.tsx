@@ -11,8 +11,9 @@ import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { BookOpen, Plus, Trash2, ArrowLeft, Loader2, LogOut } from "lucide-react";
 import { resetDemoData } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 const statusConfig: Record<
   Story["status"],
@@ -25,6 +26,7 @@ const statusConfig: Record<
 
 const Library = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [profileCache, setProfileCache] = useState<Record<string, StoredProfile | null>>({});
   const [loading, setLoading] = useState(true);
@@ -187,12 +189,20 @@ const Library = () => {
         >
           Manage Profiles
         </Link>
-        <button
-          onClick={handleReset}
-          className="inline-flex items-center gap-1 text-xs text-destructive/70 hover:text-destructive transition-colors"
-        >
-          <Trash2 size={12} /> Reset demo data
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleReset}
+            className="inline-flex items-center gap-1 text-xs text-destructive/70 hover:text-destructive transition-colors"
+          >
+            <Trash2 size={12} /> Reset demo data
+          </button>
+          <button
+            onClick={() => signOut()}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut size={12} /> Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );

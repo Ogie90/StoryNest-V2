@@ -31,7 +31,7 @@ const Index = () => {
           <p className="text-muted-foreground max-w-md mx-auto mb-8">
             It only takes a few minutes to build a story your child will treasure forever.
           </p>
-          <Button onClick={() => navigate("/onboarding")} size="lg" className="rounded-full px-10 text-base">
+          <Button onClick={() => navigate("/auth")} size="lg" className="rounded-full px-10 text-base">
             Start Creating
           </Button>
         </div>
