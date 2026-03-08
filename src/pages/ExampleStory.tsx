@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,11 +8,22 @@ import { ArrowLeft, Sparkles, Heart, Palette, Globe, ChevronRight } from "lucide
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
-const sampleProfile = {
+const fallbackProfile = {
   name: "Mira",
   age: 6,
   interests: ["Snow leopards", "Mountains", "Stargazing"],
-  avatar: "https://images.unsplash.com/photo-1535930749574-1399327ce78f?w=160&h=160&fit=crop&crop=face",
+  favoriteThings: "",
+};
+
+const getProfile = () => {
+  try {
+    const saved = localStorage.getItem("storynest-child-profile");
+    if (saved) {
+      const p = JSON.parse(saved);
+      if (p.name) return p;
+    }
+  } catch {}
+  return null;
 };
 
 const samplePages = [
