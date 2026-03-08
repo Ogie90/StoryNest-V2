@@ -189,12 +189,20 @@ const Library = () => {
         >
           Manage Profiles
         </Link>
-        <button
-          onClick={handleReset}
-          className="inline-flex items-center gap-1 text-xs text-destructive/70 hover:text-destructive transition-colors"
-        >
-          <Trash2 size={12} /> Reset demo data
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleReset}
+            className="inline-flex items-center gap-1 text-xs text-destructive/70 hover:text-destructive transition-colors"
+          >
+            <Trash2 size={12} /> Reset demo data
+          </button>
+          <button
+            onClick={() => signOut()}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut size={12} /> Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );
