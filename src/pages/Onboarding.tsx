@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import WelcomeStep from "@/components/onboarding/WelcomeStep";
 import BasicDetailsStep from "@/components/onboarding/BasicDetailsStep";
 import InterestsStep from "@/components/onboarding/InterestsStep";
@@ -8,6 +8,15 @@ import PhotoUploadStep from "@/components/onboarding/PhotoUploadStep";
 import StoryDirectionStep from "@/components/onboarding/StoryDirectionStep";
 import ReviewStep from "@/components/onboarding/ReviewStep";
 import { Progress } from "@/components/ui/progress";
+import {
+  getProfileById,
+  getStoryById,
+  saveProfile,
+  saveStory,
+  toStoredProfile,
+  createStoryFromProfile,
+  setActiveProfile,
+} from "@/lib/storage";
 
 export interface ChildProfile {
   name: string;
@@ -39,13 +48,38 @@ const defaultProfile: ChildProfile = {
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const editProfileId = searchParams.get("edit");
+  const isNew = searchParams.get("new") === "true";
+  const resumeStoryId = searchParams.get("story");
 
   const [step, setStep] = useState(() => {
+    if (editProfileId || isNew) return 1; // skip welcome for edit/new
     const saved = localStorage.getItem(STEP_KEY);
     return saved ? Number(saved) : 0;
   });
 
   const [profile, setProfile] = useState<ChildProfile>(() => {
+    // Edit existing profile
+    if (editProfileId) {
+      const existing = getProfileById(editProfileId);
+      if (existing) return existing;
+    }
+
+    // Resume a draft story — load linked profile
+    if (resumeStoryId) {
+      const story = getStoryById(resumeStoryId);
+      if (story) {
+        const linked = getProfileById(story.profileId);
+        if (linked) return linked;
+      }
+    }
+
+    // New profile — start fresh
+    if (isNew) return defaultProfile;
+
+    // Legacy behavior
     const saved = localStorage.getItem(PROFILE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -55,16 +89,58 @@ const Onboarding = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem(STEP_KEY, String(step));
-  }, [step]);
+    if (!editProfileId && !isNew && !resumeStoryId) {
+      localStorage.setItem(STEP_KEY, String(step));
+    }
+  }, [step, editProfileId, isNew, resumeStoryId]);
 
   useEffect(() => {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-  }, [profile]);
+    if (!editProfileId && !isNew && !resumeStoryId) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    }
+  }, [profile, editProfileId, isNew, resumeStoryId]);
 
   const handleFinish = () => {
+    // Always save to legacy for backward compat
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     localStorage.removeItem(STEP_KEY);
+
+    if (editProfileId) {
+      // Update existing profile in storage (same id = update, not duplicate)
+      const stored = toStoredProfile(profile, editProfileId);
+      saveProfile(stored);
+      navigate("/profiles");
+      return;
+    }
+
+    if (resumeStoryId) {
+      // Resume draft story — update linked profile and story status
+      const story = getStoryById(resumeStoryId);
+      if (story) {
+        const stored = toStoredProfile(profile, story.profileId);
+        saveProfile(stored);
+        setActiveProfile(stored);
+        navigate(`/generating?story=${resumeStoryId}`);
+      } else {
+        navigate("/generating");
+      }
+      return;
+    }
+
+    if (isNew) {
+      // Save new profile and create a story
+      const stored = toStoredProfile(profile);
+      saveProfile(stored);
+      setActiveProfile(stored);
+      const story = createStoryFromProfile(stored.id, profile.storyTone, "preview");
+      navigate(`/generating?story=${story.id}`);
+      return;
+    }
+
+    // Legacy flow — also save to new storage
+    const stored = toStoredProfile(profile);
+    saveProfile(stored);
+    setActiveProfile(stored);
     navigate("/generating");
   };
 

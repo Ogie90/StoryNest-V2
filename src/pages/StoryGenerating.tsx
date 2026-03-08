@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, getProfile } from "@/lib/guards";
+import { getStoryById, getProfileById, saveStory } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,16 +15,21 @@ const phases = [
 
 const StoryGenerating = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const storyId = searchParams.get("story");
   const [phase, setPhase] = useState(0);
   const [progress, setProgress] = useState(0);
-  const profile = getProfile();
-  const childName = profile?.name || "your child";
+
+  const story = storyId ? getStoryById(storyId) : null;
+  const storyProfile = story ? getProfileById(story.profileId) : null;
+  const legacyProfile = getProfile();
+  const childName = storyProfile?.name || legacyProfile?.name || "your child";
 
   useEffect(() => {
-    if (!hasOnboardingData()) {
+    if (!storyId && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, storyId]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,10 +49,17 @@ const StoryGenerating = () => {
 
   useEffect(() => {
     if (progress >= 100) {
-      const t = setTimeout(() => navigate("/preview", { replace: true }), 600);
+      const t = setTimeout(() => {
+        // Update story status to preview if it was draft
+        if (story && story.status === "draft") {
+          saveStory({ ...story, status: "preview" });
+        }
+        const dest = storyId ? `/preview?story=${storyId}` : "/preview";
+        navigate(dest, { replace: true });
+      }, 600);
       return () => clearTimeout(t);
     }
-  }, [progress, navigate]);
+  }, [progress, navigate, storyId, story]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-5">

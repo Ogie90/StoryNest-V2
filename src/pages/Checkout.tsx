@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData } from "@/lib/guards";
+import { getStoryById, saveStory } from "@/lib/storage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,22 +10,34 @@ import { Lock, AlertTriangle } from "lucide-react";
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const storyId = searchParams.get("story");
   const [name, setName] = useState("");
   const [card, setCard] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
 
   useEffect(() => {
-    if (!hasOnboardingData()) {
+    if (!storyId && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, storyId]);
 
   const isValid = name.trim() && card.trim() && expiry.trim() && cvc.trim();
+  const storyParam = storyId ? `?story=${storyId}` : "";
 
   const handlePurchase = () => {
     localStorage.setItem("storynest-purchased", "true");
-    navigate("/success", { replace: true });
+
+    // Update story status if story-aware
+    if (storyId) {
+      const story = getStoryById(storyId);
+      if (story) {
+        saveStory({ ...story, status: "purchased" });
+      }
+    }
+
+    navigate(`/success${storyParam}`, { replace: true });
   };
 
   return (
@@ -86,7 +99,7 @@ const Checkout = () => {
         </div>
 
         <div className="text-center">
-          <Link to="/upgrade" className="text-sm text-muted-foreground hover:text-foreground underline">
+          <Link to={`/upgrade${storyParam}`} className="text-sm text-muted-foreground hover:text-foreground underline">
             Back
           </Link>
         </div>
