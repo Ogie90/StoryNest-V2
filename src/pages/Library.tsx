@@ -12,10 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Plus, Trash2, ArrowLeft } from "lucide-react";
 
-const statusConfig: Record<Story["status"], { label: string; variant: "default" | "secondary" | "outline" }> = {
-  draft: { label: "Draft", variant: "outline" },
-  preview: { label: "Preview", variant: "secondary" },
-  purchased: { label: "Full Book", variant: "default" },
+const statusConfig: Record<
+  Story["status"],
+  { label: string; variant: "default" | "secondary" | "outline"; icon: string }
+> = {
+  draft: { label: "Draft", variant: "outline", icon: "📝" },
+  preview: { label: "Preview", variant: "secondary", icon: "👀" },
+  purchased: { label: "Full Book", variant: "default", icon: "📖" },
 };
 
 const Library = () => {
@@ -106,18 +109,37 @@ const Library = () => {
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleStoryClick(story)}
             >
-              <CardContent className="p-5 flex items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-foreground text-sm truncate">
-                    {story.edits?.title || story.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    For {profile?.name || "Unknown"} · {new Date(story.updatedAt).toLocaleDateString()}
-                  </p>
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-base">{cfg.icon}</span>
+                      <p className="font-semibold text-foreground text-sm truncate">
+                        {story.edits?.title || story.title}
+                      </p>
+                    </div>
+                    {story.subtitle && (
+                      <p className="text-xs text-muted-foreground italic mb-2 line-clamp-1">
+                        {story.subtitle}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>For {profile?.name || "Unknown"}</span>
+                      <span>·</span>
+                      <span className="capitalize">{story.tone}</span>
+                      <span>·</span>
+                      <span>{new Date(story.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <Badge variant={cfg.variant} className="text-xs shrink-0 mt-1">
+                    {cfg.label}
+                  </Badge>
                 </div>
-                <Badge variant={cfg.variant} className="text-xs shrink-0">
-                  {cfg.label}
-                </Badge>
+                {story.summary && story.status !== "draft" && (
+                  <p className="text-xs text-muted-foreground mt-3 line-clamp-2 border-t border-border pt-3">
+                    {story.summary}
+                  </p>
+                )}
               </CardContent>
             </Card>
           );

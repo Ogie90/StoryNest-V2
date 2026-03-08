@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, getProfile } from "@/lib/guards";
 import { getStoryById, getProfileById, saveStory } from "@/lib/storage";
-import { generateTitle, generatePages } from "@/lib/story-content";
+import { personalizeStory } from "@/lib/storyPersonalization";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,10 +29,12 @@ const StoryEdit = () => {
     }
   }, [navigate, story]);
 
-  const baseTitle = profile ? (story?.title || generateTitle(profile.name, profile.interests || [])) : "";
-  const basePages = profile
-    ? (story?.pages || generatePages(profile.name, profile.interests || [])).slice(0, 3)
-    : [];
+  // Use personalization for defaults
+  const tone = story?.tone || profile?.storyTone || "Adventurous";
+  const personalized = profile ? personalizeStory(profile, tone) : null;
+
+  const baseTitle = story?.title || personalized?.title || "";
+  const basePages = (story?.pages || personalized?.previewPages || []).slice(0, 3);
 
   const [title, setTitle] = useState(() => {
     if (story?.edits?.title) return story.edits.title;
@@ -44,7 +46,9 @@ const StoryEdit = () => {
   });
 
   const [pages, setPages] = useState<string[]>(() => {
-    if (story?.edits?.pages?.length) return story.edits.pages.length >= basePages.length ? story.edits.pages.slice(0, basePages.length) : basePages.map((p, i) => story.edits!.pages[i] ?? p);
+    if (story?.edits?.pages?.length) {
+      return basePages.map((p, i) => story.edits!.pages[i] ?? p);
+    }
     try {
       const saved = localStorage.getItem(EDITS_KEY);
       if (saved) return JSON.parse(saved).pages || basePages;

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, hasPurchased, getProfile } from "@/lib/guards";
-import { generateTitle, generatePages } from "@/lib/story-content";
-import { getStoryById } from "@/lib/storage";
+import { getStoryById, getProfileById } from "@/lib/storage";
+import { personalizeStory } from "@/lib/storyPersonalization";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ArrowRight, ChevronLeft, Download, BookOpen } from "lucide-react";
@@ -16,10 +16,12 @@ const Book = () => {
   const [exportOpen, setExportOpen] = useState(false);
 
   const story = storyId ? getStoryById(storyId) : null;
-  const profile = getProfile();
+  const storyProfile = story ? getProfileById(story.profileId) : null;
+  const legacyProfile = getProfile();
+  const profile = storyProfile || legacyProfile;
 
   useEffect(() => {
-    if (story) return; // story-aware route, skip legacy guards
+    if (story) return;
     if (!hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
       return;
@@ -29,21 +31,21 @@ const Book = () => {
     }
   }, [navigate, story]);
 
-  // Resolve title & pages
-  let title: string;
-  let pages: string[];
+  if (!profile) return null;
 
-  if (story) {
-    title = story.edits?.title || story.title;
-    pages = story.edits?.pages?.length
-      ? story.pages.map((p, i) => story.edits!.pages[i] ?? p)
-      : story.pages;
-  } else {
-    if (!profile) return null;
-    title = generateTitle(profile.name, profile.interests || []);
-    pages = generatePages(profile.name, profile.interests || []);
+  // Use personalization engine
+  const tone = story?.tone || profile.storyTone || "Adventurous";
+  const personalized = personalizeStory(profile, tone);
 
-    // Apply legacy edits
+  let title = story?.edits?.title || story?.title || personalized.title;
+  let pages = story?.pages || personalized.fullPages;
+  const dedication = story?.dedication || personalized.dedication;
+
+  // Apply edits
+  if (story?.edits?.pages?.length) {
+    pages = pages.map((p, i) => story.edits!.pages[i] ?? p);
+  } else if (!story) {
+    // Legacy edits fallback
     try {
       const saved = localStorage.getItem("storynest-story-edits");
       if (saved) {
@@ -55,10 +57,6 @@ const Book = () => {
       }
     } catch {}
   }
-
-  const childName = story
-    ? (() => { try { const p = getProfile(); return p?.name || "your child"; } catch { return "your child"; } })()
-    : profile?.name || "your child";
 
   const totalPages = pages.length;
 
@@ -82,11 +80,14 @@ const Book = () => {
         </div>
       </div>
 
-      {/* Title area */}
-      <div className="bg-primary/5 py-10 px-5 text-center space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="text-sm text-muted-foreground">A personalised story for {childName}</p>
-      </div>
+      {/* Title area — show on first page */}
+      {currentPage === 0 && (
+        <div className="bg-primary/5 py-10 px-5 text-center space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <p className="text-sm text-muted-foreground">A personalised story for {profile.name}</p>
+          <p className="text-xs text-muted-foreground/70 pt-1">{dedication}</p>
+        </div>
+      )}
 
       {/* Page content */}
       <div className="flex-1 flex items-start justify-center px-5 py-8">
