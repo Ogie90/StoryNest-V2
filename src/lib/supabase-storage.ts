@@ -107,7 +107,7 @@ export async function upsertProfile(profile: StoredProfile): Promise<StoredProfi
   const row = profileToDb(profile);
   const { data, error } = await supabase
     .from("profiles")
-    .upsert(row, { onConflict: "id" })
+    .upsert(row as any)
     .select()
     .single();
   if (error) {
