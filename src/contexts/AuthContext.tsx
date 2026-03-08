@@ -1,5 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AUTH_ROUTES, saveReturnTo } from "@/lib/auth-config";
+import { migrateFromLegacy } from "@/lib/storage";
+import { migrateLocalToSupabase } from "@/lib/supabase-storage";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -8,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: (returnTo?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -17,6 +21,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const migrationRanRef = useRef(false);
+
+  /** Run idempotent migrations once per session after login. */
+  const runMigrationsOnce = () => {
+    if (migrationRanRef.current) return;
+    migrationRanRef.current = true;
+    migrateFromLegacy();
+    migrateLocalToSupabase().catch((err) =>
+      console.warn("Supabase migration skipped:", err),
+    );
+  };
 
   useEffect(() => {
     // Set up listener BEFORE getSession
@@ -25,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (session) runMigrationsOnce();
       },
     );
 
@@ -32,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session) runMigrationsOnce();
     });
 
     return () => subscription.unsubscribe();
@@ -51,12 +68,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async (returnTo?: string) => {
+    if (returnTo) saveReturnTo(returnTo);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}${AUTH_ROUTES.callback}`,
+      },
+    });
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,7 +2,7 @@ import { useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, X, ImagePlus, Camera, Sun, Smile, Upload, Replace } from "lucide-react";
-import type { ChildProfile } from "@/pages/Onboarding";
+import type { ChildProfile } from "@/types";
 
 interface Props {
   profile: ChildProfile;

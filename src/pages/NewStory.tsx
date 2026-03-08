@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { migrateFromLegacy, setActiveProfile, type StoredProfile } from "@/lib/storage";
+import type { StoredProfile } from "@/types";
 import {
   fetchProfiles,
   createStoryFromProfileAsync,
@@ -27,7 +27,6 @@ const NewStory = () => {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    migrateFromLegacy();
     fetchProfiles().then((p) => {
       setProfiles(p);
       setLoading(false);
@@ -40,7 +39,6 @@ const NewStory = () => {
     if (!profile) return;
 
     setCreating(true);
-    setActiveProfile(profile);
     const story = await createStoryFromProfileAsync(selectedId, tone, "preview");
     navigate(`/generating?story=${story.id}`);
   };

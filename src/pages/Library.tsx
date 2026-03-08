@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { migrateFromLegacy, type Story } from "@/lib/storage";
+import type { Story, StoredProfile } from "@/types";
 import {
   fetchStories,
   fetchProfileById,
-  migrateLocalToSupabase,
 } from "@/lib/supabase-storage";
-import type { StoredProfile } from "@/lib/storage";
 import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
   Plus,
-  Trash2,
   ArrowLeft,
   Loader2,
   LogOut,
@@ -24,7 +21,6 @@ import {
   ArrowUpDown,
   Sparkles,
 } from "lucide-react";
-import { resetDemoData } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 
 type SortKey = "newest" | "oldest";
@@ -50,9 +46,7 @@ const Library = () => {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   useEffect(() => {
-    migrateFromLegacy();
     const load = async () => {
-      await migrateLocalToSupabase();
       const all = await fetchStories();
       setStories(all);
 
@@ -79,11 +73,6 @@ const Library = () => {
         navigate(`/book?story=${story.id}`);
         break;
     }
-  };
-
-  const handleReset = () => {
-    resetDemoData();
-    setStories([]);
   };
 
   /* ── Derived data ── */
@@ -307,12 +296,6 @@ const Library = () => {
           Manage Profiles
         </Link>
         <div className="flex items-center gap-4">
-          <button
-            onClick={handleReset}
-            className="inline-flex items-center gap-1 text-xs text-destructive/70 hover:text-destructive transition-colors"
-          >
-            <Trash2 size={12} /> Reset demo data
-          </button>
           <button
             onClick={() => signOut()}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"

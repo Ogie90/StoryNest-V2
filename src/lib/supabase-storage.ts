@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { ChildProfile } from "@/pages/Onboarding";
-import type { Story, StoredProfile } from "@/lib/storage";
+import type { ChildProfile, Story, StoredProfile } from "@/types";
 import {
   getProfiles as getLocalProfiles,
   getStories as getLocalStories,

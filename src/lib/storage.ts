@@ -1,28 +1,8 @@
-import type { ChildProfile } from "@/pages/Onboarding";
+import type { ChildProfile, StoredProfile, Story } from "@/types";
 import { personalizeStory, generatePersonalizedTitle } from "@/lib/storyPersonalization";
 
-// ── Types ──────────────────────────────────────────────
-
-export interface StoredProfile extends ChildProfile {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Story {
-  id: string;
-  profileId: string;
-  title: string;
-  subtitle: string;
-  summary: string;
-  dedication: string;
-  pages: string[];
-  status: "draft" | "preview" | "purchased";
-  tone: string;
-  createdAt: string;
-  updatedAt: string;
-  edits?: { title: string; pages: string[] };
-}
+// Re-export types for backward compatibility
+export type { ChildProfile, StoredProfile, Story } from "@/types";
 
 // ── Keys ───────────────────────────────────────────────
 

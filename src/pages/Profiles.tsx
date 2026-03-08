@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { migrateFromLegacy, type StoredProfile } from "@/lib/storage";
+import type { StoredProfile } from "@/types";
 import {
   fetchProfiles,
   fetchStoriesForProfile,
@@ -55,7 +55,6 @@ const Profiles = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    migrateFromLegacy();
     const load = async () => {
       const all = await fetchProfiles();
       setProfiles(all);

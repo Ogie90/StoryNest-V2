@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, SkipForward, ShieldCheck, Check } from "lucide-react";
-import type { ChildProfile } from "@/pages/Onboarding";
+import type { ChildProfile } from "@/types";
 
 const AVOID_OPTIONS = [
   { label: "Monsters", emoji: "👹" },
