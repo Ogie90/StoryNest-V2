@@ -168,7 +168,7 @@ const ExampleStory = () => {
             How We Personalized This Story
           </h2>
           <p className="text-muted-foreground text-center max-w-lg mx-auto mb-10">
-            Every detail in Mira's story was shaped by her profile. Here's how it works:
+            Every detail in {childName}'s story was shaped by {isPersonalized ? "their" : "her"} profile. Here's how it works:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {personalizations.map((p) => (
