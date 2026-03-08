@@ -3,10 +3,13 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, hasPurchased, getProfile } from "@/lib/guards";
 import { getStoryById, getProfileById } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
+import { getVisualTheme, getSceneLabel } from "@/lib/storyVisualTheme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ArrowRight, ChevronLeft, Download, BookOpen } from "lucide-react";
 import ExportDialog from "@/components/ExportDialog";
+import StoryCoverCard from "@/components/story/StoryCoverCard";
+import StoryPageCard from "@/components/story/StoryPageCard";
 
 const Book = () => {
   const navigate = useNavigate();
@@ -33,19 +36,19 @@ const Book = () => {
 
   if (!profile) return null;
 
-  // Use personalization engine
   const tone = story?.tone || profile.storyTone || "Adventurous";
   const personalized = personalizeStory(profile, tone);
+  const theme = getVisualTheme(profile.interests || [], tone);
 
   let title = story?.edits?.title || story?.title || personalized.title;
   let pages = story?.pages || personalized.fullPages;
+  const subtitle = story?.subtitle || personalized.subtitle;
   const dedication = story?.dedication || personalized.dedication;
 
   // Apply edits
   if (story?.edits?.pages?.length) {
     pages = pages.map((p, i) => story.edits!.pages[i] ?? p);
   } else if (!story) {
-    // Legacy edits fallback
     try {
       const saved = localStorage.getItem("storynest-story-edits");
       if (saved) {
@@ -63,7 +66,10 @@ const Book = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40">
+      <div
+        className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-40"
+        style={{ borderBottomColor: `hsl(${theme.accentHsl} / 0.3)` }}
+      >
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link
             to="/library"
@@ -80,31 +86,36 @@ const Book = () => {
         </div>
       </div>
 
-      {/* Title area — show on first page */}
+      {/* Title page */}
       {currentPage === 0 && (
-        <div className="bg-primary/5 py-10 px-5 text-center space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground">A personalised story for {profile.name}</p>
-          <p className="text-xs text-muted-foreground/70 pt-1">{dedication}</p>
-        </div>
+        <StoryCoverCard
+          title={title}
+          subtitle={subtitle}
+          dedication={dedication}
+          childName={profile.name}
+          interests={profile.interests || []}
+          tone={tone}
+          variant="full"
+        />
       )}
 
       {/* Page content */}
       <div className="flex-1 flex items-start justify-center px-5 py-8">
         <div className="w-full max-w-2xl">
-          <div className="rounded-xl border border-border bg-card p-8 min-h-[200px] shadow-sm">
-            <p className="text-xs font-semibold text-muted-foreground mb-3">
-              Page {currentPage + 1}
-            </p>
-            <p className="text-foreground leading-relaxed text-[15px]">
-              {pages[currentPage]}
-            </p>
-          </div>
+          <StoryPageCard
+            pageNumber={currentPage + 1}
+            text={pages[currentPage]}
+            theme={theme}
+            sceneLabel={getSceneLabel(theme, currentPage)}
+          />
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="border-t border-border bg-card/90 backdrop-blur-md sticky bottom-0 z-40">
+      <div
+        className="border-t bg-card/90 backdrop-blur-md sticky bottom-0 z-40"
+        style={{ borderTopColor: `hsl(${theme.accentHsl} / 0.3)` }}
+      >
         <div className="max-w-2xl mx-auto px-5 h-16 flex items-center justify-between">
           <Button
             variant="ghost"
@@ -121,11 +132,15 @@ const Book = () => {
               <button
                 key={idx}
                 onClick={() => setCurrentPage(idx)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  idx === currentPage
-                    ? "bg-primary"
-                    : "bg-border hover:bg-muted-foreground/30"
-                }`}
+                className="w-2 h-2 rounded-full transition-colors"
+                style={{
+                  backgroundColor: idx === currentPage
+                    ? `hsl(${theme.accentHsl})`
+                    : undefined,
+                }}
+                {...(idx !== currentPage && {
+                  className: "w-2 h-2 rounded-full transition-colors bg-border hover:bg-muted-foreground/30",
+                })}
               />
             ))}
           </div>

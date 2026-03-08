@@ -7,6 +7,7 @@ import {
   resetDemoData,
   type Story,
 } from "@/lib/storage";
+import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,17 +104,25 @@ const Library = () => {
         {stories.map((story) => {
           const profile = getProfileById(story.profileId);
           const cfg = statusConfig[story.status];
+          const interests = profile?.interests || [];
+          const theme = getVisualTheme(interests, story.tone);
+          const WorldIcon = getThemeIcon(theme);
+          const isPurchased = story.status === "purchased";
+
           return (
             <Card
               key={story.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className={`cursor-pointer hover:shadow-md transition-shadow overflow-hidden ${
+                isPurchased ? "shadow-md" : ""
+              }`}
+              style={{ borderLeftWidth: 4, borderLeftColor: `hsl(${theme.accentHsl})` }}
               onClick={() => handleStoryClick(story)}
             >
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-base">{cfg.icon}</span>
+                      <WorldIcon size={14} className="text-muted-foreground shrink-0" />
                       <p className="font-semibold text-foreground text-sm truncate">
                         {story.edits?.title || story.title}
                       </p>
