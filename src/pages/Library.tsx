@@ -25,7 +25,7 @@ const statusConfig: Record<
 };
 
 const Library = () => {
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [profileCache, setProfileCache] = useState<Record<string, StoredProfile | null>>({});
   const [loading, setLoading] = useState(true);
