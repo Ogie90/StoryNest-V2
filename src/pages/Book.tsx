@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, hasPurchased, getProfile } from "@/lib/guards";
-import { getStoryById, getProfileById } from "@/lib/storage";
+import { fetchStoryById, fetchProfileById } from "@/lib/supabase-storage";
+import type { Story, StoredProfile } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
 import { getVisualTheme, getSceneLabel } from "@/lib/storyVisualTheme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, ChevronLeft, Download, BookOpen } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, Download, BookOpen, Loader2 } from "lucide-react";
 import ExportDialog from "@/components/ExportDialog";
 import StoryCoverCard from "@/components/story/StoryCoverCard";
 import StoryPageCard from "@/components/story/StoryPageCard";
@@ -17,13 +18,31 @@ const Book = () => {
   const storyId = searchParams.get("story");
   const [currentPage, setCurrentPage] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
-
-  const story = storyId ? getStoryById(storyId) : null;
-  const storyProfile = story ? getProfileById(story.profileId) : null;
-  const legacyProfile = getProfile();
-  const profile = storyProfile || legacyProfile;
+  const [story, setStory] = useState<Story | null>(null);
+  const [profile, setProfile] = useState<StoredProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const load = async () => {
+      if (storyId) {
+        const s = await fetchStoryById(storyId);
+        setStory(s);
+        if (s) {
+          const p = await fetchProfileById(s.profileId);
+          setProfile(p);
+        }
+      }
+      if (!storyId) {
+        const legacy = getProfile();
+        if (legacy) setProfile(legacy);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [storyId]);
+
+  useEffect(() => {
+    if (loading) return;
     if (story) return;
     if (!hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
@@ -32,7 +51,15 @@ const Book = () => {
     if (!hasPurchased()) {
       navigate("/preview", { replace: true });
     }
-  }, [navigate, story]);
+  }, [loading, navigate, story]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!profile) return null;
 
@@ -45,7 +72,6 @@ const Book = () => {
   const subtitle = story?.subtitle || personalized.subtitle;
   const dedication = story?.dedication || personalized.dedication;
 
-  // Apply edits
   if (story?.edits?.pages?.length) {
     pages = pages.map((p, i) => story.edits!.pages[i] ?? p);
   } else if (!story) {
@@ -65,7 +91,6 @@ const Book = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <div
         className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-40"
         style={{ borderBottomColor: `hsl(${theme.accentHsl} / 0.3)` }}
@@ -86,7 +111,6 @@ const Book = () => {
         </div>
       </div>
 
-      {/* Title page */}
       {currentPage === 0 && (
         <StoryCoverCard
           title={title}
@@ -99,7 +123,6 @@ const Book = () => {
         />
       )}
 
-      {/* Page content */}
       <div className="flex-1 flex items-start justify-center px-5 py-8">
         <div className="w-full max-w-2xl">
           <StoryPageCard
@@ -111,7 +134,6 @@ const Book = () => {
         </div>
       </div>
 
-      {/* Navigation */}
       <div
         className="border-t bg-card/90 backdrop-blur-md sticky bottom-0 z-40"
         style={{ borderTopColor: `hsl(${theme.accentHsl} / 0.3)` }}

@@ -11,12 +11,14 @@ import { Progress } from "@/components/ui/progress";
 import {
   getProfileById,
   getStoryById,
-  saveProfile,
-  saveStory,
   toStoredProfile,
-  createStoryFromProfile,
   setActiveProfile,
 } from "@/lib/storage";
+import {
+  upsertProfile,
+  fetchStoryById as fetchStoryByIdAsync,
+  createStoryFromProfileAsync,
+} from "@/lib/supabase-storage";
 
 export interface ChildProfile {
   name: string;

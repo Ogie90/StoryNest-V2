@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, getProfile } from "@/lib/guards";
-import { getStoryById, getProfileById, saveStory } from "@/lib/storage";
+import { fetchStoryById, fetchProfileById, upsertStory } from "@/lib/supabase-storage";
+import type { Story, StoredProfile } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
 import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const EDITS_KEY = "storynest-story-edits";
@@ -18,57 +19,71 @@ const StoryEdit = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const storyId = searchParams.get("story");
-
-  const story = storyId ? getStoryById(storyId) : null;
-  const storyProfile = story ? getProfileById(story.profileId) : null;
-  const legacyProfile = getProfile();
-  const profile = storyProfile || legacyProfile;
+  const [story, setStory] = useState<Story | null>(null);
+  const [profile, setProfile] = useState<StoredProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState("");
+  const [pages, setPages] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!story && !hasOnboardingData()) {
+    const load = async () => {
+      let s: Story | null = null;
+      let p: StoredProfile | null = null;
+      if (storyId) {
+        s = await fetchStoryById(storyId);
+        if (s) p = await fetchProfileById(s.profileId);
+      }
+      if (!p) {
+        const legacy = getProfile();
+        if (legacy) p = legacy;
+      }
+      setStory(s);
+      setProfile(p);
+
+      const tone = s?.tone || p?.storyTone || "Adventurous";
+      const personalized = p ? personalizeStory(p, tone) : null;
+      const baseTitle = s?.title || personalized?.title || "";
+      const basePages = (s?.pages || personalized?.previewPages || []).slice(0, 3);
+
+      setTitle(s?.edits?.title || baseTitle);
+      if (s?.edits?.pages?.length) {
+        setPages(basePages.map((pg, i) => s!.edits!.pages[i] ?? pg));
+      } else {
+        setPages(basePages);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [storyId]);
+
+  useEffect(() => {
+    if (!loading && !story && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate, story]);
+  }, [loading, story, navigate]);
 
-  const tone = story?.tone || profile?.storyTone || "Adventurous";
-  const personalized = profile ? personalizeStory(profile, tone) : null;
-  const theme = getVisualTheme(profile?.interests || [], tone);
-  const ThemeIcon = getThemeIcon(theme);
-
-  const baseTitle = story?.title || personalized?.title || "";
-  const basePages = (story?.pages || personalized?.previewPages || []).slice(0, 3);
-
-  const [title, setTitle] = useState(() => {
-    if (story?.edits?.title) return story.edits.title;
-    try {
-      const saved = localStorage.getItem(EDITS_KEY);
-      if (saved) return JSON.parse(saved).title || baseTitle;
-    } catch {}
-    return baseTitle;
-  });
-
-  const [pages, setPages] = useState<string[]>(() => {
-    if (story?.edits?.pages?.length) {
-      return basePages.map((p, i) => story.edits!.pages[i] ?? p);
-    }
-    try {
-      const saved = localStorage.getItem(EDITS_KEY);
-      if (saved) return JSON.parse(saved).pages || basePages;
-    } catch {}
-    return basePages;
-  });
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!profile) return null;
 
+  const tone = story?.tone || profile.storyTone || "Adventurous";
+  const theme = getVisualTheme(profile.interests || [], tone);
+  const ThemeIcon = getThemeIcon(theme);
   const storyParam = storyId ? `?story=${storyId}` : "";
 
   const updatePage = (idx: number, value: string) => {
     setPages((prev) => prev.map((p, i) => (i === idx ? value : p)));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (story) {
-      saveStory({ ...story, edits: { title, pages } });
+      await upsertStory({ ...story, edits: { title, pages } });
     } else {
       localStorage.setItem(EDITS_KEY, JSON.stringify({ title, pages }));
     }
@@ -77,7 +92,6 @@ const StoryEdit = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Themed accent bar */}
       <div className={`h-1.5 bg-gradient-to-r ${theme.gradient}`} />
 
       <div className="py-8 px-5">
@@ -86,7 +100,6 @@ const StoryEdit = () => {
             <ArrowLeft size={14} /> Back to Preview
           </Button>
 
-          {/* Compact header with theme context */}
           <div className="flex items-center gap-3">
             <ThemeIcon size={18} className="text-muted-foreground shrink-0" />
             <div>
@@ -103,10 +116,7 @@ const StoryEdit = () => {
           </div>
 
           {pages.map((text, idx) => (
-            <div
-              key={idx}
-              className={`rounded-xl border ${theme.borderClass} overflow-hidden`}
-            >
+            <div key={idx} className={`rounded-xl border ${theme.borderClass} overflow-hidden`}>
               <div className={`h-1 bg-gradient-to-r ${theme.gradient}`} />
               <div className={`p-5 space-y-2 ${theme.surfaceClass}`}>
                 <Label>Page {idx + 1}</Label>
