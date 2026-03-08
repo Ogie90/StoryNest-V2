@@ -11,8 +11,9 @@ import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { BookOpen, Plus, Trash2, ArrowLeft, Loader2, LogOut } from "lucide-react";
 import { resetDemoData } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 const statusConfig: Record<
   Story["status"],
