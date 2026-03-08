@@ -13,18 +13,18 @@ const ProductShowcase = () => (
         Browse, discover, and read beautifully crafted stories — all personalized for your child.
       </p>
 
-      <div className="flex justify-center gap-6 lg:gap-10 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory lg:snap-none">
-        <div className="shrink-0 snap-center transform scale-90 lg:scale-[0.85] origin-top">
+      <div className="flex justify-start lg:justify-center gap-4 lg:gap-10 overflow-x-auto pb-4 px-5 lg:px-0 scrollbar-hide snap-x snap-mandatory lg:snap-none -mx-5 lg:mx-0">
+        <div className="shrink-0 snap-center transform scale-[0.72] sm:scale-[0.8] lg:scale-[0.85] origin-top ml-4 lg:ml-0">
           <MobileFrame>
             <HomeScreen />
           </MobileFrame>
         </div>
-        <div className="shrink-0 snap-center transform scale-90 lg:scale-[0.85] origin-top">
+        <div className="shrink-0 snap-center transform scale-[0.72] sm:scale-[0.8] lg:scale-[0.85] origin-top">
           <MobileFrame>
             <BookDetailScreen />
           </MobileFrame>
         </div>
-        <div className="shrink-0 snap-center transform scale-90 lg:scale-[0.85] origin-top">
+        <div className="shrink-0 snap-center transform scale-[0.72] sm:scale-[0.8] lg:scale-[0.85] origin-top mr-4 lg:mr-0">
           <MobileFrame>
             <ReaderScreen />
           </MobileFrame>

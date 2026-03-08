@@ -90,7 +90,7 @@ const Upgrade = () => {
                 className={cn(
                   "relative overflow-hidden transition-all duration-200",
                   plan.highlight
-                    ? "border-2 border-primary shadow-lg scale-[1.02] sm:scale-105"
+                    ? "border-2 border-primary shadow-lg"
                     : "border border-border"
                 )}
               >

@@ -149,12 +149,12 @@ const Book = () => {
             <ArrowLeft size={14} /> Previous
           </Button>
 
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 max-w-[50vw] overflow-x-auto scrollbar-hide">
             {pages.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentPage(idx)}
-                className={`w-2 h-2 rounded-full transition-colors ${
+                className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
                   idx !== currentPage ? "bg-border hover:bg-muted-foreground/30" : ""
                 }`}
                 style={idx === currentPage ? { backgroundColor: `hsl(${theme.accentHsl})` } : undefined}
