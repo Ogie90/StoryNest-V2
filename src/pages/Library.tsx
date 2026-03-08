@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { migrateFromLegacy, type Story } from "@/lib/storage";
 import {
-  migrateFromLegacy,
-  getStories,
-  getProfileById,
-  resetDemoData,
-  type Story,
-} from "@/lib/storage";
+  fetchStories,
+  fetchProfileById,
+  migrateLocalToSupabase,
+} from "@/lib/supabase-storage";
+import type { StoredProfile } from "@/lib/storage";
 import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { BookOpen, Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { resetDemoData } from "@/lib/storage";
 
 const statusConfig: Record<
   Story["status"],
@@ -25,10 +26,26 @@ const statusConfig: Record<
 const Library = () => {
   const navigate = useNavigate();
   const [stories, setStories] = useState<Story[]>([]);
+  const [profileCache, setProfileCache] = useState<Record<string, StoredProfile | null>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     migrateFromLegacy();
-    setStories(getStories().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+    const load = async () => {
+      await migrateLocalToSupabase();
+      const all = await fetchStories();
+      setStories(all.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+
+      // Batch-load profiles
+      const ids = [...new Set(all.map((s) => s.profileId))];
+      const cache: Record<string, StoredProfile | null> = {};
+      await Promise.all(ids.map(async (id) => {
+        cache[id] = await fetchProfileById(id);
+      }));
+      setProfileCache(cache);
+      setLoading(false);
+    };
+    load();
   }, []);
 
   const handleStoryClick = (story: Story) => {
@@ -49,6 +66,14 @@ const Library = () => {
     resetDemoData();
     setStories([]);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (stories.length === 0) {
     return (
@@ -102,7 +127,7 @@ const Library = () => {
 
       <div className="max-w-2xl mx-auto px-5 mt-6 space-y-4">
         {stories.map((story) => {
-          const profile = getProfileById(story.profileId);
+          const profile = profileCache[story.profileId];
           const cfg = statusConfig[story.status];
           const interests = profile?.interests || [];
           const theme = getVisualTheme(interests, story.tone);

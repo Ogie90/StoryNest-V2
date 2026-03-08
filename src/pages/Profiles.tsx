@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { migrateFromLegacy, type StoredProfile } from "@/lib/storage";
 import {
-  migrateFromLegacy,
-  getProfiles,
-  deleteProfile,
-  getStoriesForProfile,
-  deleteStory,
-  type StoredProfile,
-} from "@/lib/storage";
+  fetchProfiles,
+  fetchStoriesForProfile,
+  removeProfile,
+  removeStory,
+} from "@/lib/supabase-storage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,24 +21,46 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, Plus, Trash2, User } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, Trash2, User, Loader2 } from "lucide-react";
 
 const Profiles = () => {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<StoredProfile[]>([]);
+  const [storyCounts, setStoryCounts] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     migrateFromLegacy();
-    setProfiles(getProfiles());
+    const load = async () => {
+      const all = await fetchProfiles();
+      setProfiles(all);
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        all.map(async (p) => {
+          const stories = await fetchStoriesForProfile(p.id);
+          counts[p.id] = stories.length;
+        }),
+      );
+      setStoryCounts(counts);
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  const handleDelete = (id: string) => {
-    // Delete associated stories first
-    const stories = getStoriesForProfile(id);
-    stories.forEach((s) => deleteStory(s.id));
-    deleteProfile(id);
-    setProfiles(getProfiles());
+  const handleDelete = async (id: string) => {
+    const stories = await fetchStoriesForProfile(id);
+    await Promise.all(stories.map((s) => removeStory(s.id)));
+    await removeProfile(id);
+    setProfiles((prev) => prev.filter((p) => p.id !== id));
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (profiles.length === 0) {
     return (
@@ -96,11 +117,10 @@ const Profiles = () => {
 
       <div className="max-w-2xl mx-auto px-5 mt-6 space-y-4">
         {profiles.map((profile) => {
-          const storyCount = getStoriesForProfile(profile.id).length;
+          const storyCount = storyCounts[profile.id] || 0;
           return (
             <Card key={profile.id}>
               <CardContent className="p-5 flex items-center gap-4">
-                {/* Avatar */}
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   {profile.photos?.length ? (
                     <img
@@ -113,7 +133,6 @@ const Profiles = () => {
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-sm">{profile.name}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -133,7 +152,6 @@ const Profiles = () => {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-1 shrink-0">
                   <Button
                     variant="ghost"
