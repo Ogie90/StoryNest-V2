@@ -158,7 +158,7 @@ export async function upsertStory(story: Story): Promise<Story> {
   const row = storyToDb(story);
   const { data, error } = await supabase
     .from("stories")
-    .upsert(row, { onConflict: "id" })
+    .upsert(row as any)
     .select()
     .single();
   if (error) {
