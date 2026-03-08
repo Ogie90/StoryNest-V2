@@ -127,9 +127,9 @@ const ExampleStory = () => {
               A StoryNest Original
             </p>
             <h3 className="text-2xl font-bold text-primary-foreground leading-tight">
-              The Child and the Snow Leopard
+              {isPersonalized ? `${childName} and the Snow Leopard` : "The Child and the Snow Leopard"}
             </h3>
-            <p className="text-sm text-primary-foreground/80 mt-1">A story made just for Mira</p>
+            <p className="text-sm text-primary-foreground/80 mt-1">A story made just for {childName}</p>
           </div>
         </div>
       </section>
