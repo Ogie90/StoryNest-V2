@@ -1,5 +1,5 @@
 import type { ChildProfile } from "@/pages/Onboarding";
-import { generateTitle, generatePages } from "@/lib/story-content";
+import { personalizeStory, generatePersonalizedTitle } from "@/lib/storyPersonalization";
 
 // ── Types ──────────────────────────────────────────────
 
