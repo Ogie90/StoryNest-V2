@@ -13,6 +13,9 @@ import Upgrade from "./pages/Upgrade";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Book from "./pages/Book";
+import Library from "./pages/Library";
+import Profiles from "./pages/Profiles";
+import NewStory from "./pages/NewStory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +36,9 @@ const App = () => (
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/success" element={<PaymentSuccess />} />
           <Route path="/book" element={<Book />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/profiles" element={<Profiles />} />
+          <Route path="/new-story" element={<NewStory />} />
           <Route path="/example" element={<ExampleStory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

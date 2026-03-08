@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, getProfile } from "@/lib/guards";
+import { getStoryById, getProfileById, saveStory } from "@/lib/storage";
 import { generateTitle, generatePages } from "@/lib/story-content";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,18 +15,27 @@ const EDITS_KEY = "storynest-story-edits";
 
 const StoryEdit = () => {
   const navigate = useNavigate();
-  const profile = getProfile();
+  const [searchParams] = useSearchParams();
+  const storyId = searchParams.get("story");
+
+  const story = storyId ? getStoryById(storyId) : null;
+  const storyProfile = story ? getProfileById(story.profileId) : null;
+  const legacyProfile = getProfile();
+  const profile = storyProfile || legacyProfile;
 
   useEffect(() => {
-    if (!hasOnboardingData()) {
+    if (!story && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, story]);
 
-  const baseTitle = profile ? generateTitle(profile.name, profile.interests || []) : "";
-  const basePages = profile ? generatePages(profile.name, profile.interests || []).slice(0, 3) : [];
+  const baseTitle = profile ? (story?.title || generateTitle(profile.name, profile.interests || [])) : "";
+  const basePages = profile
+    ? (story?.pages || generatePages(profile.name, profile.interests || [])).slice(0, 3)
+    : [];
 
   const [title, setTitle] = useState(() => {
+    if (story?.edits?.title) return story.edits.title;
     try {
       const saved = localStorage.getItem(EDITS_KEY);
       if (saved) return JSON.parse(saved).title || baseTitle;
@@ -34,6 +44,7 @@ const StoryEdit = () => {
   });
 
   const [pages, setPages] = useState<string[]>(() => {
+    if (story?.edits?.pages?.length) return story.edits.pages.length >= basePages.length ? story.edits.pages.slice(0, basePages.length) : basePages.map((p, i) => story.edits!.pages[i] ?? p);
     try {
       const saved = localStorage.getItem(EDITS_KEY);
       if (saved) return JSON.parse(saved).pages || basePages;
@@ -43,19 +54,25 @@ const StoryEdit = () => {
 
   if (!profile) return null;
 
+  const storyParam = storyId ? `?story=${storyId}` : "";
+
   const updatePage = (idx: number, value: string) => {
     setPages((prev) => prev.map((p, i) => (i === idx ? value : p)));
   };
 
   const handleSave = () => {
-    localStorage.setItem(EDITS_KEY, JSON.stringify({ title, pages }));
+    if (story) {
+      saveStory({ ...story, edits: { title, pages } });
+    } else {
+      localStorage.setItem(EDITS_KEY, JSON.stringify({ title, pages }));
+    }
     toast({ title: "Changes saved", description: "Your edits have been saved." });
   };
 
   return (
     <div className="min-h-screen bg-background py-12 px-5">
       <div className="max-w-2xl mx-auto space-y-8">
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => navigate("/preview")}>
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => navigate(`/preview${storyParam}`)}>
           <ArrowLeft size={14} /> Back to Preview
         </Button>
 
@@ -84,7 +101,7 @@ const StoryEdit = () => {
 
         <div className="flex gap-3">
           <Button onClick={handleSave} className="flex-1">Save Changes</Button>
-          <Button variant="outline" className="flex-1" onClick={() => navigate("/preview")}>Cancel</Button>
+          <Button variant="outline" className="flex-1" onClick={() => navigate(`/preview${storyParam}`)}>Cancel</Button>
         </div>
       </div>
     </div>

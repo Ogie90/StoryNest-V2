@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData } from "@/lib/guards";
+import { getStoryById, saveStory } from "@/lib/storage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
@@ -37,12 +38,15 @@ const plans = [
 
 const Upgrade = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const storyId = searchParams.get("story");
+  const storyParam = storyId ? `?story=${storyId}` : "";
 
   useEffect(() => {
-    if (!hasOnboardingData()) {
+    if (!storyId && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, storyId]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-5 py-12">
@@ -90,11 +94,11 @@ const Upgrade = () => {
                   ))}
                 </ul>
                 {plan.highlight ? (
-                  <Button className="w-full" onClick={() => navigate("/checkout")}>
+                  <Button className="w-full" onClick={() => navigate(`/checkout${storyParam}`)}>
                     Unlock Now
                   </Button>
                 ) : (
-                  <Button variant="outline" className="w-full" onClick={() => navigate("/preview")}>
+                  <Button variant="outline" className="w-full" onClick={() => navigate(`/preview${storyParam}`)}>
                     Continue Free
                   </Button>
                 )}
@@ -107,7 +111,7 @@ const Upgrade = () => {
           <p className="text-xs text-muted-foreground">
             Instant digital delivery. Preview first, unlock when ready.
           </p>
-          <Link to="/preview" className="text-sm text-muted-foreground hover:text-foreground underline">
+          <Link to={`/preview${storyParam}`} className="text-sm text-muted-foreground hover:text-foreground underline">
             Back to Preview
           </Link>
         </div>

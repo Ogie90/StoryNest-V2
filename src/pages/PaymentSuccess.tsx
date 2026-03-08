@@ -1,27 +1,35 @@
 import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, hasPurchased, getProfile } from "@/lib/guards";
+import { getStoryById, getProfileById } from "@/lib/storage";
 import { generateTitle } from "@/lib/story-content";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
-  const profile = getProfile();
+  const [searchParams] = useSearchParams();
+  const storyId = searchParams.get("story");
+
+  const story = storyId ? getStoryById(storyId) : null;
+  const storyProfile = story ? getProfileById(story.profileId) : null;
+  const legacyProfile = getProfile();
+  const profile = storyProfile || legacyProfile;
 
   useEffect(() => {
-    if (!hasOnboardingData()) {
+    if (!story && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
       return;
     }
-    if (!hasPurchased()) {
+    if (!story && !hasPurchased()) {
       navigate("/preview", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, story]);
 
   if (!profile) return null;
 
-  const title = generateTitle(profile.name, profile.interests || []);
+  const title = story?.title || generateTitle(profile.name, profile.interests || []);
+  const bookPath = storyId ? `/book?story=${storyId}` : "/book";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-5">
@@ -41,17 +49,20 @@ const PaymentSuccess = () => {
           Your full personalised story is now unlocked.
         </p>
 
-        <Button className="w-full" onClick={() => navigate("/book")}>
+        <Button className="w-full" onClick={() => navigate(bookPath)}>
           Open Your Book
         </Button>
+
+        <Link
+          to="/library"
+          className="inline-block text-sm text-primary hover:underline"
+        >
+          Go to My Library
+        </Link>
 
         <p className="text-xs text-muted-foreground">
           A confirmation email would be sent in the live version.
         </p>
-
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground underline">
-          Back to Home
-        </Link>
       </div>
     </div>
   );

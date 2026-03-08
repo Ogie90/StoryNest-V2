@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { hasOnboardingData, getProfile } from "@/lib/guards";
+import { getStoryById, getProfileById } from "@/lib/storage";
 import { generateTitle, generatePages } from "@/lib/story-content";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,27 +10,34 @@ import { Lock, Pencil, ArrowLeft } from "lucide-react";
 
 const StoryPreview = () => {
   const navigate = useNavigate();
-  const profile = getProfile();
+  const [searchParams] = useSearchParams();
+  const storyId = searchParams.get("story");
+
+  const story = storyId ? getStoryById(storyId) : null;
+  const storyProfile = story ? getProfileById(story.profileId) : null;
+  const legacyProfile = getProfile();
+  const profile = storyProfile || legacyProfile;
 
   useEffect(() => {
-    if (!hasOnboardingData()) {
+    if (!story && !hasOnboardingData()) {
       navigate("/onboarding", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, story]);
 
   if (!profile) return null;
 
-  const title = generateTitle(profile.name, profile.interests || []);
-  const pages = generatePages(profile.name, profile.interests || []);
+  const title = story?.edits?.title || story?.title || generateTitle(profile.name, profile.interests || []);
+  const pages = story?.pages || generatePages(profile.name, profile.interests || []);
   const previewPages = pages.slice(0, 3);
+  const storyParam = storyId ? `?story=${storyId}` : "";
 
   return (
     <div className="min-h-screen bg-background pb-16">
       {/* Header */}
       <div className="relative bg-primary/5 py-12 px-5">
         <div className="max-w-2xl mx-auto text-center space-y-4">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
-            <ArrowLeft size={14} /> Home
+          <Link to="/library" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+            <ArrowLeft size={14} /> Library
           </Link>
           <h1 className="text-3xl font-bold text-foreground">{title}</h1>
           <p className="text-muted-foreground text-sm">
@@ -68,7 +76,7 @@ const StoryPreview = () => {
             <Lock className="w-6 h-6 text-muted-foreground mb-2" />
             <p className="text-sm font-medium text-foreground">Unlock the full story</p>
             <p className="text-xs text-muted-foreground mt-1 mb-3">3 more pages await</p>
-            <Button onClick={() => navigate("/upgrade")} size="sm">
+            <Button onClick={() => navigate(`/upgrade${storyParam}`)} size="sm">
               Unlock Full Book
             </Button>
           </div>
@@ -76,10 +84,10 @@ const StoryPreview = () => {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <Button variant="outline" className="flex-1 gap-2" onClick={() => navigate("/edit")}>
+          <Button variant="outline" className="flex-1 gap-2" onClick={() => navigate(`/edit${storyParam}`)}>
             <Pencil size={14} /> Edit Story
           </Button>
-          <Button className="flex-1" onClick={() => navigate("/upgrade")}>
+          <Button className="flex-1" onClick={() => navigate(`/upgrade${storyParam}`)}>
             Unlock Full Book
           </Button>
         </div>

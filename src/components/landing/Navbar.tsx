@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, BookOpen } from "lucide-react";
 
 const navLinks = [
   { label: "How it Works", href: "#how-it-works" },
@@ -11,10 +12,16 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const scrollTo = (href: string) => {
     setOpen(false);
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const goToLibrary = () => {
+    setOpen(false);
+    navigate("/library");
   };
 
   return (
@@ -33,6 +40,12 @@ const Navbar = () => {
               {link.label}
             </button>
           ))}
+          <button
+            onClick={goToLibrary}
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+          >
+            <BookOpen size={14} /> My Library
+          </button>
         </div>
 
         <div className="hidden md:block">
@@ -60,6 +73,12 @@ const Navbar = () => {
                   {link.label}
                 </button>
               ))}
+              <button
+                onClick={goToLibrary}
+                className="text-base font-medium text-foreground text-left inline-flex items-center gap-2"
+              >
+                <BookOpen size={16} /> My Library
+              </button>
               <Button onClick={() => scrollTo("#final-cta")} className="rounded-full mt-4">
                 Start Creating
               </Button>
