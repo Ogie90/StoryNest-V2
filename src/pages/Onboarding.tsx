@@ -102,25 +102,23 @@ const Onboarding = () => {
     }
   }, [profile, editProfileId, isNew, resumeStoryId]);
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     // Always save to legacy for backward compat
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     localStorage.removeItem(STEP_KEY);
 
     if (editProfileId) {
-      // Update existing profile in storage (same id = update, not duplicate)
       const stored = toStoredProfile(profile, editProfileId);
-      saveProfile(stored);
+      await upsertProfile(stored);
       navigate("/profiles");
       return;
     }
 
     if (resumeStoryId) {
-      // Resume draft story — update linked profile and story status
       const story = getStoryById(resumeStoryId);
       if (story) {
         const stored = toStoredProfile(profile, story.profileId);
-        saveProfile(stored);
+        await upsertProfile(stored);
         setActiveProfile(stored);
         navigate(`/generating?story=${resumeStoryId}`);
       } else {
@@ -130,18 +128,17 @@ const Onboarding = () => {
     }
 
     if (isNew) {
-      // Save new profile and create a story
       const stored = toStoredProfile(profile);
-      saveProfile(stored);
+      await upsertProfile(stored);
       setActiveProfile(stored);
-      const story = createStoryFromProfile(stored.id, profile.storyTone, "preview");
+      const story = await createStoryFromProfileAsync(stored.id, profile.storyTone, "preview");
       navigate(`/generating?story=${story.id}`);
       return;
     }
 
-    // Legacy flow — also save to new storage
+    // Legacy flow
     const stored = toStoredProfile(profile);
-    saveProfile(stored);
+    await upsertProfile(stored);
     setActiveProfile(stored);
     navigate("/generating");
   };
