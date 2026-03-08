@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
   Plus,
-  Trash2,
   ArrowLeft,
   Loader2,
   LogOut,
