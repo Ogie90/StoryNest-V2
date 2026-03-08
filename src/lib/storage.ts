@@ -179,16 +179,19 @@ export function migrateFromLegacy(): void {
 
         // Determine status from legacy flags
         const purchased = localStorage.getItem(LEGACY_PURCHASED_KEY) === "true";
-        const title = generateTitle(legacy.name, legacy.interests || []);
-        const pages = generatePages(legacy.name, legacy.interests || []);
+        const tone = legacy.storyTone || "Adventurous";
+        const personalized = personalizeStory(legacy, tone);
 
         const story: Story = {
           id: genId(),
           profileId,
-          title,
-          pages,
+          title: personalized.title,
+          subtitle: personalized.subtitle,
+          summary: personalized.summary,
+          dedication: personalized.dedication,
+          pages: personalized.fullPages,
           status: purchased ? "purchased" : "preview",
-          tone: legacy.storyTone || "Adventurous",
+          tone,
           createdAt: ts,
           updatedAt: ts,
         };
