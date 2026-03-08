@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, type Easing } from "framer-motion";
 import type { StoryVisualTheme } from "@/lib/storyVisualTheme";
 
 interface StoryPageCardProps {
@@ -10,18 +10,19 @@ interface StoryPageCardProps {
 }
 
 const StoryPageCard = ({ pageNumber, text, theme, sceneLabel, animate = true }: StoryPageCardProps) => {
-  const Wrapper = animate ? motion.div : "div";
-  const wrapperProps = animate
-    ? {
-        initial: { opacity: 0, y: 16 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.4, ease: "easeOut" },
-      }
-    : {};
+  if (!animate) {
+    return (
+      <div className={`rounded-2xl border ${theme.borderClass} ${theme.surfaceClass} overflow-hidden shadow-sm`}>
+        <PageContent pageNumber={pageNumber} text={text} theme={theme} sceneLabel={sceneLabel} />
+      </div>
+    );
+  }
 
   return (
-    <Wrapper
-      {...wrapperProps}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" as Easing }}
       className={`rounded-2xl border ${theme.borderClass} ${theme.surfaceClass} overflow-hidden shadow-sm`}
     >
       {/* Accent bar */}
