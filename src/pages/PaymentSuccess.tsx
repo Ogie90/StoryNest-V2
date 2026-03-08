@@ -5,8 +5,9 @@ import { getStoryById, getProfileById } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
 import { getVisualTheme } from "@/lib/storyVisualTheme";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, BookOpen, Library, Sparkles } from "lucide-react";
 import StoryCoverCard from "@/components/story/StoryCoverCard";
+
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -39,20 +40,28 @@ const PaymentSuccess = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-5">
       <div className="w-full max-w-md text-center space-y-6">
-        <div
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full mx-auto"
-          style={{
-            backgroundColor: `hsl(${theme.accentHsl} / 0.1)`,
-            border: `2px solid hsl(${theme.accentHsl} / 0.3)`,
-          }}
-        >
-          <CheckCircle className="w-8 h-8" style={{ color: `hsl(${theme.accentHsl})` }} />
+        {/* Success icon */}
+        <div className="relative inline-block mx-auto">
+          <div
+            className="inline-flex items-center justify-center w-20 h-20 rounded-full"
+            style={{
+              background: `linear-gradient(135deg, hsl(${theme.accentHsl} / 0.15), hsl(${theme.accentHsl} / 0.05))`,
+              border: `2px solid hsl(${theme.accentHsl} / 0.3)`,
+            }}
+          >
+            <CheckCircle className="w-10 h-10" style={{ color: `hsl(${theme.accentHsl})` }} />
+          </div>
+          <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+            <Sparkles size={14} className="text-primary-foreground" />
+          </div>
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Payment Successful!</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+            It's Ready! 🎉
+          </h1>
           <p className="text-muted-foreground text-sm">
-            <strong>{title}</strong> is ready for {profile.name}.
+            <strong>{title}</strong> is now unlocked for {profile.name}.
           </p>
         </div>
 
@@ -64,22 +73,23 @@ const PaymentSuccess = () => {
           variant="compact"
         />
 
-        <p className="text-sm text-muted-foreground">
-          Your full personalised story is now unlocked.
-        </p>
+        <div className="space-y-3 pt-2">
+          <Button
+            className="w-full rounded-full h-12 text-base gap-2"
+            onClick={() => navigate(bookPath)}
+          >
+            <BookOpen size={18} /> Open Your Book
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full rounded-full h-11 gap-2"
+            onClick={() => navigate("/library")}
+          >
+            <Library size={16} /> Go to My Library
+          </Button>
+        </div>
 
-        <Button className="w-full" onClick={() => navigate(bookPath)}>
-          Open Your Book
-        </Button>
-
-        <Link
-          to="/library"
-          className="inline-block text-sm text-primary hover:underline"
-        >
-          Go to My Library
-        </Link>
-
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground pt-2">
           A confirmation email would be sent in the live version.
         </p>
       </div>
