@@ -22,7 +22,7 @@ import {
   ArrowUpDown,
   Sparkles,
 } from "lucide-react";
-import { resetDemoData } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 type SortKey = "newest" | "oldest";
