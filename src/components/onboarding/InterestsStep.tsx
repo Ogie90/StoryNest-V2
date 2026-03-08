@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import CategoryChip from "@/components/storynest/CategoryChip";
 import type { ChildProfile } from "@/pages/Onboarding";
 
@@ -14,11 +14,11 @@ const INTEREST_OPTIONS = [
 interface Props {
   profile: ChildProfile;
   onChange: (p: ChildProfile) => void;
-  onFinish: () => void;
+  onNext: () => void;
   onBack: () => void;
 }
 
-const InterestsStep = ({ profile, onChange, onFinish, onBack }: Props) => {
+const InterestsStep = ({ profile, onChange, onNext, onBack }: Props) => {
   const [error, setError] = useState("");
 
   const toggleInterest = (interest: string) => {
@@ -34,7 +34,7 @@ const InterestsStep = ({ profile, onChange, onFinish, onBack }: Props) => {
       setError("Please select at least one interest.");
       return;
     }
-    onFinish();
+    onNext();
   };
 
   return (
@@ -72,7 +72,7 @@ const InterestsStep = ({ profile, onChange, onFinish, onBack }: Props) => {
             <ArrowLeft size={16} /> Back
           </Button>
           <Button onClick={handleSubmit} className="rounded-full px-8 gap-1">
-            Create My Story <Sparkles size={16} />
+            Next <ArrowRight size={16} />
           </Button>
         </div>
       </CardContent>
