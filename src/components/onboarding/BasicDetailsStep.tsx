@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { ChildProfile } from "@/pages/Onboarding";
 
 const schema = z.object({
@@ -24,9 +25,15 @@ interface Props {
   onBack: () => void;
 }
 
-const readingLevels = ["Early Reader", "Beginner", "Intermediate", "Advanced"];
+const readingLevels = [
+  { value: "Early Reader", hint: "Ages 2–4, simple words" },
+  { value: "Beginner", hint: "Ages 4–6, short sentences" },
+  { value: "Intermediate", hint: "Ages 6–9, paragraphs" },
+  { value: "Advanced", hint: "Ages 9+, rich vocabulary" },
+];
 
 const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
+  const nameRef = useRef<HTMLInputElement>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -36,6 +43,11 @@ const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
     },
   });
 
+  useEffect(() => {
+    // Auto-focus name field
+    setTimeout(() => nameRef.current?.focus(), 100);
+  }, []);
+
   const onSubmit = (values: FormValues) => {
     onChange({ ...profile, ...values });
     onNext();
@@ -43,9 +55,11 @@ const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
 
   return (
     <Card className="border-0 shadow-soft">
-      <CardContent className="p-8">
+      <CardContent className="p-6 sm:p-8">
         <h2 className="text-xl font-bold text-foreground mb-1">Tell Us About Your Child</h2>
-        <p className="text-sm text-muted-foreground mb-6">We'll use these basics to shape the story.</p>
+        <p className="text-sm text-muted-foreground mb-6">
+          These basics help us tailor the story's language and themes.
+        </p>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -56,7 +70,15 @@ const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
                 <FormItem>
                   <FormLabel>Child's Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Mira" {...field} />
+                    <Input
+                      placeholder="e.g. Mira"
+                      {...field}
+                      ref={(e) => {
+                        field.ref(e);
+                        (nameRef as any).current = e;
+                      }}
+                      className="h-11"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -74,7 +96,7 @@ const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
                     onValueChange={(v) => field.onChange(Number(v))}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select age" />
                       </SelectTrigger>
                     </FormControl>
@@ -99,14 +121,15 @@ const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
                   <FormLabel>Reading Level</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select level" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {readingLevels.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
+                        <SelectItem key={level.value} value={level.value}>
+                          <span>{level.value}</span>
+                          <span className="text-muted-foreground ml-1 text-xs">— {level.hint}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -116,10 +139,7 @@ const BasicDetailsStep = ({ profile, onChange, onNext, onBack }: Props) => {
               )}
             />
 
-            <div className="flex items-center justify-between pt-2">
-              <Button type="button" variant="ghost" onClick={onBack} className="gap-1">
-                <ArrowLeft size={16} /> Back
-              </Button>
+            <div className="flex items-center justify-end pt-2">
               <Button type="submit" className="rounded-full px-8 gap-1">
                 Next <ArrowRight size={16} />
               </Button>

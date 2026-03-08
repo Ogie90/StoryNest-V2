@@ -2,13 +2,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import CategoryChip from "@/components/storynest/CategoryChip";
+import { ArrowRight, Check } from "lucide-react";
 import type { ChildProfile } from "@/pages/Onboarding";
 
 const INTEREST_OPTIONS = [
-  "Dinosaurs", "Space", "Animals", "Trucks", "Princesses", "Ocean",
-  "Robots", "Superheroes", "Fairies", "Music", "Sports", "Cooking",
+  { label: "Dinosaurs", emoji: "🦕" },
+  { label: "Space", emoji: "🚀" },
+  { label: "Animals", emoji: "🐾" },
+  { label: "Trucks", emoji: "🚚" },
+  { label: "Princesses", emoji: "👑" },
+  { label: "Ocean", emoji: "🌊" },
+  { label: "Robots", emoji: "🤖" },
+  { label: "Superheroes", emoji: "🦸" },
+  { label: "Fairies", emoji: "🧚" },
+  { label: "Music", emoji: "🎵" },
+  { label: "Sports", emoji: "⚽" },
+  { label: "Cooking", emoji: "🍳" },
 ];
 
 interface Props {
@@ -39,21 +48,44 @@ const InterestsStep = ({ profile, onChange, onNext, onBack }: Props) => {
 
   return (
     <Card className="border-0 shadow-soft">
-      <CardContent className="p-8">
-        <h2 className="text-xl font-bold text-foreground mb-1">What Does {profile.name || "Your Child"} Love?</h2>
-        <p className="text-sm text-muted-foreground mb-6">Pick topics that excite them — we'll weave these into the story.</p>
+      <CardContent className="p-6 sm:p-8">
+        <h2 className="text-xl font-bold text-foreground mb-1">
+          What Does {profile.name || "Your Child"} Love?
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Pick topics that excite them — we'll weave these into the story.
+        </p>
 
-        <div className="flex flex-wrap gap-2 mb-2">
-          {INTEREST_OPTIONS.map((interest) => (
-            <CategoryChip
-              key={interest}
-              label={interest}
-              active={profile.interests.includes(interest)}
-              onClick={() => toggleInterest(interest)}
-            />
-          ))}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
+          {INTEREST_OPTIONS.map((interest) => {
+            const isActive = profile.interests.includes(interest.label);
+            return (
+              <button
+                key={interest.label}
+                onClick={() => toggleInterest(interest.label)}
+                className={`relative flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all duration-200 text-center ${
+                  isActive
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/40 bg-card"
+                }`}
+              >
+                <span className="text-2xl">{interest.emoji}</span>
+                <span className="text-xs font-medium text-foreground">{interest.label}</span>
+                {isActive && (
+                  <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <Check size={10} className="text-primary-foreground" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
         {error && <p className="text-sm text-destructive mt-1 mb-4">{error}</p>}
+        {profile.interests.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            {profile.interests.length} selected
+          </p>
+        )}
 
         <div className="mt-6">
           <label className="text-sm font-medium text-foreground block mb-2">
@@ -65,12 +97,12 @@ const InterestsStep = ({ profile, onChange, onNext, onBack }: Props) => {
             onChange={(e) => onChange({ ...profile, favoriteThings: e.target.value })}
             className="min-h-[80px]"
           />
+          <p className="text-xs text-muted-foreground mt-1.5">
+            The more specific, the more personal the story feels.
+          </p>
         </div>
 
-        <div className="flex items-center justify-between pt-6">
-          <Button type="button" variant="ghost" onClick={onBack} className="gap-1">
-            <ArrowLeft size={16} /> Back
-          </Button>
+        <div className="flex items-center justify-end pt-6">
           <Button onClick={handleSubmit} className="rounded-full px-8 gap-1">
             Next <ArrowRight size={16} />
           </Button>
