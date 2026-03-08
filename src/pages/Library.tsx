@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { migrateFromLegacy, type Story } from "@/lib/storage";
+import type { Story, StoredProfile } from "@/types";
 import {
   fetchStories,
   fetchProfileById,
-  migrateLocalToSupabase,
 } from "@/lib/supabase-storage";
-import type { StoredProfile } from "@/lib/storage";
 import { getVisualTheme, getThemeIcon } from "@/lib/storyVisualTheme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
