@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { hasOnboardingData, hasPurchased, getProfile } from "@/lib/guards";
 import { fetchStoryById, fetchProfileById } from "@/lib/supabase-storage";
 import type { Story, StoredProfile } from "@/lib/storage";
 import { personalizeStory } from "@/lib/storyPersonalization";
 import { getVisualTheme, getSceneLabel } from "@/lib/storyVisualTheme";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, ChevronLeft, Download, BookOpen, Loader2 } from "lucide-react";
 import ExportDialog from "@/components/ExportDialog";
 import StoryCoverCard from "@/components/story/StoryCoverCard";
@@ -17,6 +18,7 @@ const Book = () => {
   const [searchParams] = useSearchParams();
   const storyId = searchParams.get("story");
   const [currentPage, setCurrentPage] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
   const [story, setStory] = useState<Story | null>(null);
   const [profile, setProfile] = useState<StoredProfile | null>(null);
@@ -53,6 +55,31 @@ const Book = () => {
     }
   }, [loading, navigate, story]);
 
+  const goToPage = useCallback((idx: number) => {
+    setDirection(idx > currentPage ? 1 : -1);
+    setCurrentPage(idx);
+  }, [currentPage]);
+
+  const goNext = useCallback(() => {
+    setDirection(1);
+    setCurrentPage((p) => p + 1);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setDirection(-1);
+    setCurrentPage((p) => p - 1);
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" && currentPage < (story?.pages?.length || 8) - 1) goNext();
+      if (e.key === "ArrowLeft" && currentPage > 0) goPrev();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [currentPage, goNext, goPrev, story]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -88,29 +115,49 @@ const Book = () => {
   }
 
   const totalPages = pages.length;
+  const progressPercent = Math.round(((currentPage + 1) / totalPages) * 100);
+
+  const pageVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
       <div
         className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-40"
-        style={{ borderBottomColor: `hsl(${theme.accentHsl} / 0.3)` }}
+        style={{ borderBottomColor: `hsl(${theme.accentHsl} / 0.2)` }}
       >
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link
             to="/library"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft size={16} /> Library
           </Link>
-          <Badge variant="secondary" className="text-xs">
-            Page {currentPage + 1} of {totalPages}
-          </Badge>
+          <div className="flex flex-col items-center">
+            <span className="text-xs font-medium text-foreground leading-none">
+              {currentPage + 1} / {totalPages}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {getSceneLabel(theme, currentPage) || `Page ${currentPage + 1}`}
+            </span>
+          </div>
           <Button variant="ghost" size="icon" onClick={() => setExportOpen(true)}>
             <Download size={18} />
           </Button>
         </div>
+        {/* Progress bar */}
+        <Progress
+          value={progressPercent}
+          className="h-0.5 rounded-none"
+          style={{ "--progress-color": `hsl(${theme.accentHsl})` } as React.CSSProperties}
+        />
       </div>
 
+      {/* Cover on page 0 */}
       {currentPage === 0 && (
         <StoryCoverCard
           title={title}
@@ -123,20 +170,35 @@ const Book = () => {
         />
       )}
 
-      <div className="flex-1 flex items-start justify-center px-5 py-8">
+      {/* Page content with animation */}
+      <div className="flex-1 flex items-start justify-center px-5 py-8 overflow-hidden">
         <div className="w-full max-w-2xl">
-          <StoryPageCard
-            pageNumber={currentPage + 1}
-            text={pages[currentPage]}
-            theme={theme}
-            sceneLabel={getSceneLabel(theme, currentPage)}
-          />
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentPage}
+              custom={direction}
+              variants={pageVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <StoryPageCard
+                pageNumber={currentPage + 1}
+                text={pages[currentPage]}
+                theme={theme}
+                sceneLabel={getSceneLabel(theme, currentPage)}
+                animate={false}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
+      {/* Footer navigation */}
       <div
         className="border-t bg-card/90 backdrop-blur-md sticky bottom-0 z-40"
-        style={{ borderTopColor: `hsl(${theme.accentHsl} / 0.3)` }}
+        style={{ borderTopColor: `hsl(${theme.accentHsl} / 0.2)` }}
       >
         <div className="max-w-2xl mx-auto px-5 h-16 flex items-center justify-between">
           <Button
@@ -144,7 +206,7 @@ const Book = () => {
             size="sm"
             className="gap-1"
             disabled={currentPage === 0}
-            onClick={() => setCurrentPage((p) => p - 1)}
+            onClick={goPrev}
           >
             <ArrowLeft size={14} /> Previous
           </Button>
@@ -153,11 +215,20 @@ const Book = () => {
             {pages.map((_, idx) => (
               <button
                 key={idx}
-                onClick={() => setCurrentPage(idx)}
-                className={`w-2 h-2 rounded-full transition-colors shrink-0 ${
-                  idx !== currentPage ? "bg-border hover:bg-muted-foreground/30" : ""
+                onClick={() => goToPage(idx)}
+                className={`w-2 h-2 rounded-full transition-all duration-200 shrink-0 ${
+                  idx === currentPage
+                    ? "scale-125"
+                    : idx <= currentPage
+                    ? "opacity-60"
+                    : "opacity-30"
                 }`}
-                style={idx === currentPage ? { backgroundColor: `hsl(${theme.accentHsl})` } : undefined}
+                style={{
+                  backgroundColor:
+                    idx <= currentPage
+                      ? `hsl(${theme.accentHsl})`
+                      : `hsl(${theme.accentHsl} / 0.2)`,
+                }}
               />
             ))}
           </div>
@@ -167,14 +238,14 @@ const Book = () => {
               variant="ghost"
               size="sm"
               className="gap-1"
-              onClick={() => setCurrentPage((p) => p + 1)}
+              onClick={goNext}
             >
               Next <ArrowRight size={14} />
             </Button>
           ) : (
             <Button
               size="sm"
-              className="gap-1"
+              className="gap-1 rounded-full"
               onClick={() => setExportOpen(true)}
             >
               <BookOpen size={14} /> Export
