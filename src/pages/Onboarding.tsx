@@ -65,7 +65,7 @@ const Onboarding = () => {
   const handleFinish = () => {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     localStorage.removeItem(STEP_KEY);
-    navigate("/example");
+    navigate("/generating");
   };
 
   const progressValue = step === 0 ? 0 : Math.round((step / (TOTAL_STEPS - 1)) * 100);
