@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils";
 const plans = [
   {
     name: "Free",
+    subtitle: "Preview your story",
     price: "$0",
-    cta: "Get Started Free",
+    cta: "Start Free",
     highlight: false,
     features: [
       "1 story preview",
@@ -17,12 +18,13 @@ const plans = [
   },
   {
     name: "Pro",
+    subtitle: "Unlock the full book",
     price: "$9.99",
-    cta: "Go Pro",
+    cta: "Unlock Full Book",
     highlight: true,
     features: [
       "Full story",
-      "Full illustrations",
+      "Full illustrated pages",
       "Downloadable digital book",
       "No watermark",
     ],
@@ -32,11 +34,16 @@ const plans = [
 const PricingSection = () => (
   <section id="pricing" className="py-16 lg:py-24">
     <div className="max-w-7xl mx-auto px-5 lg:px-8">
-      <h2 className="text-2xl lg:text-3xl font-bold text-foreground text-center mb-4">
-        Simple, Transparent Pricing
+      <h2 className="text-2xl lg:text-3xl font-bold text-foreground text-center mb-3">
+        Simple Pricing for Personalized Stories
       </h2>
-      <p className="text-muted-foreground text-center max-w-lg mx-auto mb-12">
-        Start for free. Upgrade when you're ready to unlock the full experience.
+      <p className="text-muted-foreground text-center max-w-lg mx-auto mb-4">
+        Create a preview for free, then unlock the full book when you're ready to keep it.
+      </p>
+
+      {/* Value row */}
+      <p className="text-xs text-muted-foreground/70 text-center mb-12">
+        Every book includes: personalized pages · custom story world · downloadable format
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -44,7 +51,7 @@ const PricingSection = () => (
           <Card
             key={plan.name}
             className={cn(
-              "relative overflow-hidden transition-shadow duration-300",
+              "relative overflow-hidden rounded-2xl transition-shadow duration-300",
               plan.highlight
                 ? "border-2 border-primary shadow-soft"
                 : "border border-border shadow-soft-sm"
@@ -52,12 +59,13 @@ const PricingSection = () => (
           >
             {plan.highlight && (
               <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl">
-                Popular
+                Makes a thoughtful gift
               </div>
             )}
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">{plan.name}</CardTitle>
-              <p className="text-3xl font-extrabold text-foreground mt-1">{plan.price}</p>
+              <p className="text-xs text-muted-foreground">{plan.subtitle}</p>
+              <p className="text-3xl font-extrabold text-foreground mt-2">{plan.price}</p>
             </CardHeader>
             <CardContent className="pt-2">
               <ul className="space-y-3 mb-6">

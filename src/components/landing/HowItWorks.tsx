@@ -1,18 +1,23 @@
+import { motion } from "framer-motion";
+
 const steps = [
   {
+    emoji: "📝",
     number: "1",
-    title: "Tell Us About Your Child",
-    description: "Share their name, age, interests, and the little details that make them special.",
+    title: "Tell us about your child",
+    description: "Add their name, age, interests, and a few favorite things.",
   },
   {
+    emoji: "✨",
     number: "2",
-    title: "We Craft a Personalized Story",
-    description: "Our system weaves a unique narrative with custom characters and illustrations just for them.",
+    title: "We shape the story around them",
+    description: "StoryNest builds a world, tone, and adventure that feels personal from the first page.",
   },
   {
+    emoji: "📖",
     number: "3",
-    title: "Preview, Unlock & Keep",
-    description: "Preview your story for free, then unlock the full experience to read and revisit anytime.",
+    title: "Preview, unlock, and keep it",
+    description: "See the story first, then unlock the full book when it feels right.",
   },
 ];
 
@@ -26,15 +31,23 @@ const HowItWorks = () => (
         Three simple steps to create a story your child will never forget.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-        {steps.map((step) => (
-          <div key={step.number} className="text-center">
-            <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground text-xl font-bold flex items-center justify-center mx-auto mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-4xl mx-auto">
+        {steps.map((step, i) => (
+          <motion.div
+            key={step.number}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: i * 0.1 }}
+            className="relative rounded-2xl bg-card shadow-soft-sm p-6 lg:p-8 text-center"
+          >
+            <span className="text-3xl lg:text-4xl mb-4 block">{step.emoji}</span>
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold mb-3">
               {step.number}
-            </div>
-            <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">{step.description}</p>
-          </div>
+            </span>
+            <h3 className="text-base font-bold text-foreground mb-2">{step.title}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+          </motion.div>
         ))}
       </div>
     </div>
