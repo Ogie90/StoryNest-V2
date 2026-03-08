@@ -175,7 +175,7 @@ const Library = () => {
       <div className="max-w-3xl mx-auto px-5 mt-5">
         <div className="flex flex-wrap items-center gap-2">
           {/* Status filter chips */}
-          <div className="flex items-center gap-1.5 mr-auto flex-wrap">
+          <div className="flex items-center gap-1.5 mr-auto overflow-x-auto scrollbar-hide">
             <SlidersHorizontal size={14} className="text-muted-foreground shrink-0" />
             {(["all", "draft", "preview", "purchased"] as FilterStatus[]).map((status) => {
               const isActive = filterStatus === status;
