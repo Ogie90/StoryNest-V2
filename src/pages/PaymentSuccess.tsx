@@ -7,7 +7,7 @@ import { getVisualTheme } from "@/lib/storyVisualTheme";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, BookOpen, Library, Sparkles } from "lucide-react";
 import StoryCoverCard from "@/components/story/StoryCoverCard";
-import confetti from "@/lib/confetti";
+
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
