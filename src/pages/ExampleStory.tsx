@@ -69,13 +69,15 @@ const ExampleStory = () => {
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-5 lg:px-8 pt-8 pb-12 text-center">
         <Badge variant="secondary" className="rounded-full px-4 py-1 mb-4 bg-accent-lavender/30 border-0 text-foreground">
-          Example Story
+          {isPersonalized ? "Your Story Preview" : "Example Story"}
         </Badge>
         <h1 className="text-3xl lg:text-4xl font-extrabold text-foreground leading-tight mb-3">
-          The Child and the Snow Leopard
+          {isPersonalized ? `${childName} and the Snow Leopard` : "The Child and the Snow Leopard"}
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
-          See what a personalized StoryNest book looks like — crafted for a child named Mira who loves snow leopards and stargazing.
+          {isPersonalized
+            ? `A personalized StoryNest book crafted just for ${childName}.`
+            : "See what a personalized StoryNest book looks like — crafted for a child named Mira who loves snow leopards and stargazing."}
         </p>
       </section>
 
@@ -84,16 +86,19 @@ const ExampleStory = () => {
         <Card className="border-0 shadow-soft overflow-hidden">
           <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-5">
             <Avatar className="w-20 h-20 ring-4 ring-primary/20 shrink-0">
-              <AvatarImage src={sampleProfile.avatar} alt={sampleProfile.name} />
-              <AvatarFallback className="bg-accent-lavender text-foreground text-xl">M</AvatarFallback>
+              <AvatarFallback className="bg-accent-lavender text-foreground text-xl">
+                {childName.charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div className="text-center sm:text-left">
               <h2 className="text-lg font-bold text-foreground">
-                {sampleProfile.name}, age {sampleProfile.age}
+                {childName}, age {profile.age}
               </h2>
-              <p className="text-sm text-muted-foreground mt-1 mb-3">Here's the profile used to generate this story:</p>
+              <p className="text-sm text-muted-foreground mt-1 mb-3">
+                {isPersonalized ? "Your child's profile:" : "Here's the profile used to generate this story:"}
+              </p>
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {sampleProfile.interests.map((interest) => (
+                {profile.interests.map((interest: string) => (
                   <Badge
                     key={interest}
                     variant="secondary"
