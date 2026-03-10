@@ -1,9 +1,11 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 const HeroSection = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <section className="relative py-16 lg:py-28 overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent-lavender/8">
@@ -23,11 +25,11 @@ const HeroSection = () => {
               Upload a few details, choose their favorite world, and create a story that feels made just for them — not a generic name swap.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
-              <Button onClick={() => navigate("/onboarding")} size="lg" className="rounded-full px-8 text-base">
+              <Button onClick={() => router.push("/onboarding")} size="lg" className="rounded-full px-8 text-base">
                 Start Creating
               </Button>
               <Button asChild variant="outline" size="lg" className="rounded-full px-8 text-base">
-                <Link to="/example">See an Example</Link>
+                <Link href="/example">See an Example</Link>
               </Button>
             </div>
             <p className="mt-5 text-sm text-muted-foreground/80">

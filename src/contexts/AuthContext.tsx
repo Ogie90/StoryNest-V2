@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import { AUTH_ROUTES, saveReturnTo } from "@/lib/auth-config";
+
+// Module-level singleton — createBrowserClient deduplicates internally by URL
+const supabase = createClient();
 import { migrateFromLegacy } from "@/lib/storage";
 import { migrateLocalToSupabase } from "@/lib/supabase-storage";
 import type { User, Session } from "@supabase/supabase-js";

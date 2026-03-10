@@ -1,5 +1,6 @@
+"use client";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -13,7 +14,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user, loading, signOut } = useAuth();
 
   const scrollTo = (href: string) => {
@@ -23,18 +24,18 @@ const Navbar = () => {
 
   const goToLibrary = () => {
     setOpen(false);
-    navigate("/library");
+    router.push("/library");
   };
 
   const handleSignOut = async () => {
     setOpen(false);
     await signOut();
-    navigate("/");
+    router.push("/");
   };
 
   const handleSignIn = () => {
     setOpen(false);
-    navigate("/auth");
+    router.push("/auth");
   };
 
   return (

@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, BookOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 interface Props {
   open: boolean;
@@ -45,7 +45,7 @@ const ExportDialog = ({ open, onOpenChange }: Props) => {
             <p className="text-xs text-muted-foreground">
               You can access this book anytime from{" "}
               <Link
-                to="/library"
+                href="/library"
                 className="text-primary underline"
                 onClick={() => onOpenChange(false)}
               >

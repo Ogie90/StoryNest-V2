@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Clock, User, Sparkles, BookOpen } from "lucide-react";
 
 interface WelcomeStepProps {
@@ -49,7 +49,7 @@ const WelcomeStep = ({ onNext }: WelcomeStepProps) => (
         </Button>
 
         <p className="mt-4 text-center">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             ← Back to home
           </Link>
         </p>

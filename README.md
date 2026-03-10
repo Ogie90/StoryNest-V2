@@ -1,73 +1,174 @@
-# Welcome to your Lovable project
+# StoryNest
 
-## Project info
+**Personalized children's storybooks — where your child is the hero.**
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+StoryNest generates fully personalized storybooks tailored to a child's name, age, interests, reading level, and personality. Every story is unique: the child is the protagonist, the world reflects what they love, and the narrative tone matches what parents want their kid to experience.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## What it does
 
-**Use Lovable**
+1. **Onboarding** — Parents answer a short set of questions about their child: name, age, reading level, interests, things to avoid, and story tone (adventurous, funny, calming, etc.)
+2. **Generation** — StoryNest builds a complete multi-page illustrated storybook using the child's profile
+3. **Preview** — Parents see 3 pages of the story before unlocking the full book
+4. **Unlock** — One-time payment to access the complete book
+5. **Read** — Full interactive book reader with page-turn animations and print/export
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+The core idea: not a generic "insert name here" template, but a story that's actually *about* this specific child — their world, their things, their tone.
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## User flow
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```
+/ (landing)
+  └── /auth (sign up / sign in)
+        └── /onboarding (7-step profile builder)
+              └── /generating (story generation in progress)
+                    └── /preview (3-page preview + unlock CTA)
+                          ├── /upgrade (upsell page)
+                          │     └── /checkout → /success
+                          └── /book (full book reader — unlocked)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+/library         — all created stories
+/profiles        — manage child profiles
+/new-story       — start a new story from an existing profile
+/example         — public demo story (no auth required)
+```
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Tech stack
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS + shadcn/ui |
+| Animation | Framer Motion |
+| Auth | Supabase Auth (email + Google OAuth) |
+| Database | Supabase PostgreSQL |
+| Session | Cookie-based via `@supabase/ssr` |
+| State | React Context (auth) + TanStack Query |
+| Forms | React Hook Form + Zod |
+| Font | Plus Jakarta Sans (next/font) |
 
-# Step 3: Install the necessary dependencies.
-npm i
+---
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+## Project structure
+
+```
+src/
+├── app/                        # Next.js App Router
+│   ├── (marketing)/            # Public pages: /, /example, /terms, /privacy
+│   ├── (auth)/                 # Auth pages: /auth, /auth/callback
+│   ├── (app)/                  # Protected pages: /library, /book, etc.
+│   ├── layout.tsx              # Root layout — font, metadata, providers
+│   ├── sitemap.ts              # Auto-generated sitemap
+│   └── robots.ts               # Robots rules
+│
+├── routes/                     # Route-level React components (all "use client")
+├── components/
+│   ├── landing/                # Landing page sections
+│   ├── onboarding/             # 7-step onboarding form components
+│   ├── story/                  # Story display components
+│   ├── storynest/              # ProductShowcase mockup components
+│   ├── providers/              # Client-side provider wrappers
+│   └── ui/                     # shadcn/ui components
+│
+├── lib/
+│   ├── supabase/               # SSR-aware Supabase clients
+│   ├── storage.ts              # localStorage CRUD
+│   ├── supabase-storage.ts     # Supabase CRUD with localStorage fallback
+│   ├── storyPersonalization.ts # Story generation engine (~420 lines)
+│   ├── storyVisualTheme.ts     # Visual theme system
+│   └── utils.ts                # cn() utility
+│
+├── contexts/
+│   └── AuthContext.tsx         # Auth state + signIn/signUp/signOut methods
+│
+├── middleware.ts               # Edge auth — redirects unauthenticated to /auth
+└── types/index.ts              # ChildProfile, Story, StoredProfile
+```
+
+---
+
+## Getting started
+
+### Prerequisites
+- Node.js 18+
+- A Supabase project (for auth + database)
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env.local
+# Fill in NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open [http://localhost:3000](http://localhost:3000).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment variables
 
-**Use GitHub Codespaces**
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SITE_URL=https://storynest.app   # optional, used for sitemap/OG
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Scripts
 
-## What technologies are used for this project?
+```bash
+npm run dev      # Start development server
+npm run build    # Production build
+npm run start    # Start production server
+npm run lint     # ESLint
+npm run test     # Run tests (vitest)
+```
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Database schema
 
-## How can I deploy this project?
+Two tables in Supabase:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+**profiles** — Child profiles created by users
+```
+id, user_id, child_name, age, reading_level, interests[],
+favorites, avoid_topics[], avoid_free_text, story_tone, photos[],
+created_at, updated_at
+```
 
-## Can I connect a custom domain to my Lovable project?
+**stories** — Generated storybooks
+```
+id, user_id, profile_id, title, subtitle, summary, dedication,
+pages (JSON), tone, status (draft|preview|unlocked), edits (JSON),
+created_at, updated_at
+```
 
-Yes, you can!
+Row Level Security is enabled on both tables — users can only read/write their own data.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Auth flow
+
+- Email/password signup and login
+- Google OAuth (PKCE flow)
+- Sessions stored in cookies via `@supabase/ssr` — readable by edge middleware
+- Protected routes enforced at the edge: unauthenticated requests are redirected to `/auth?returnTo=<original-path>`
+- After login, users are returned to the page they originally tried to access
+
+---
+
+## Story generation
+
+The core logic lives in `src/lib/storyPersonalization.ts`. It takes a `ChildProfile` and a tone, and produces a complete story structure: title, subtitle, dedication, and a full set of pages — each with text and an image prompt.
+
+The story content is shaped entirely by the child's profile data: their name appears throughout the narrative, their interests drive the plot, things to avoid are excluded, and the reading level controls vocabulary and sentence complexity.

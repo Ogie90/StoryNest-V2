@@ -1,4 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 import type { ChildProfile, Story, StoredProfile } from "@/types";
 import {
   getProfiles as getLocalProfiles,
